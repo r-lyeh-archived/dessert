@@ -24,7 +24,7 @@ autotest()
 Sample
 ------
 <pre>
-#include "test.hpp"
+#include "petitsuite.hpp"
 
 int main() {
     int a = 1, b = 2;
