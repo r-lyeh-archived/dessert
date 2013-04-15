@@ -9,13 +9,15 @@ petitsuite
 
 test1()
 -------
-- `test1(expression)` macro expects given expression to be true.
+- `test1(expression)` macro expects given `expression` to be true.
 - `test1(expression)` behaves similar to `assert(expression)` but does not break execution on fails.
+- `test1(expression)` will output verbosely all fails. Macro requires expression type to be `std::ostream<<` friendly.
 
 test3()
 -------
-- `test3(variable1,operator,variable2)` expects given expression to be true.
-- `test3(variable1,operator,variable2)` will output value of arguments when expression fails. It requires both variables to be `std::ostream<<` friendly.
+- `test3(expression1,operator,expression2)` macro expects given `expression1 operator expression2` to be true.
+- `test3(expression1,operator,expression2)` behaves similar to `assert(expression1 operator expression2)` but does not break execution on fails.
+- `test3(expression1,operator,expression2)` will output verbosely all fails. Macro requires both expression types to be `std::ostream<<` friendly.
 
 autotest()
 ----------
@@ -49,13 +51,23 @@ Possible output
 ---------------
 <pre>
 ~/petitsuite>./test
-[ OK ] Test 1: 1 == 1 is true (1) seen at test.sample.cpp:6
-[ OK ] Test 3: a &lt; b (1 &lt; 2) seen at test.sample.cpp:9
-[ OK ] Test 5: 1 != b (1 != 2) seen at test.sample.cpp:11
-[ OK ] Test 6: 2 == 2 (2 == 2) seen at test.sample.cpp:17
+[ OK ] Test 1 at sample.cc:6
+[ OK ] Test 3 at sample.cc:9
+[ OK ] Test 5 at sample.cc:11
+[ OK ] Test 6 at sample.cc:17
 
-[FAIL] Test 2: 1 &lt;= 0 is false (0) seen at test.sample.cpp:7
-[FAIL] Test 4: a &gt; b (1 &gt; 2) seen at test.sample.cpp:10
-[FAIL] Test 7: 2 != 2 (2 != 2) seen at test.sample.cpp:18
+[FAIL] Test 2 at sample.cc:7
+        1 &lt;= 0
+        false
+[FAIL] Test 4 at sample.cc:10
+        a &gt; b
+        1 &gt; 2
+        false
+[FAIL] Test 7 at sample.cc:18
+        2 != 2
+        2 != 2
+        false
+
+Oops! 3/7 tests failed! :(
 ~/petitsuite>
 </pre>

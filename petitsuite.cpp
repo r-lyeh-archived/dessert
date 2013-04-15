@@ -8,7 +8,7 @@
 #include <set>
 #include <cstdio>
 
-namespace tests
+namespace petitsuite
 {
     size_t passed = 0, failed = 0, executed = 0;
 
@@ -58,9 +58,9 @@ namespace tests
                 wrong << errors;
 
                 if( !failed )
-                    footer << "Ok! All " << executed << " tests succeeded!" << std::endl;
+                    footer << "Ok! All " << executed << " tests succeeded! :)" << std::endl;
                 else
-                    footer << "Oops! " << failed << '/' << executed << " tests failed!" << std::endl;
+                    footer << "Oops! " << failed << '/' << executed << " tests failed! :(" << std::endl;
 
                 (*on_report)( right.str(), wrong.str(), footer.str() );
             }

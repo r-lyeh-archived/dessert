@@ -35,56 +35,44 @@
 #include <sstream>
 #include <string>
 
-/* public API */
-namespace tests
+namespace petitsuite
 {
+    /* public API */
     // optional read-only stats
     extern size_t passed, failed, executed;
 
-    // optional overridable callbacks: ie, tests::on_warning = my_callback_fn;
+    // optional overridable callbacks: ie, petitsuite::on_warning = my_callback_fn;
     extern void (*on_warning)( const std::string &message );
     extern void (*on_report)( const std::string &right, const std::string &wrong, const std::string &footer );
 
     // optional macro
 #   define autotest(n) \
         static void autotest$line(n)(); \
-        const bool autotest$line(autotest_) = tests::detail::queue( autotest$line(n) ); \
+        const bool autotest$line(autotest_) = petitsuite::detail::queue( autotest$line(n) ); \
         void autotest$line(n)()
 
     // main macro
-#   define test1(A) do { \
-        auto __a__ = (A); bool ok = __a__ != decltype(__a__)(0); \
+#   define test3(A,op,B) do { \
         std::stringstream ss; \
-        ss << (ok ? "[ OK ] " : "[FAIL] " ); \
-        ss << "Test " << (tests::executed+1) << ": "; \
-        ss << #A << ( ok ? " is true (" : " is false (" ) << __a__ << ") "; \
-        ss << "seen at " << __FILE__ << ':' << __LINE__; \
-        tests::detail::attach( ss.str(), ok ); \
+        auto _A_ = (A); auto _B_ = (B); auto _OK_ = _A_ op _B_; \
+        ss << ( _OK_ ? "[ OK ]" : "[FAIL]" ) << " Test " << (1+petitsuite::executed); \
+        ss << " at " __FILE__ ":" << __LINE__; if( !_OK_ ) { \
+         if( std::string("decltype(" #A ")(0)") != #B ) \
+          /**/ ss << "\n\t" #A " " #op " " #B "\n\t" << _A_ << " " #op " " << _B_; \
+          else ss << "\n\t" #A; \
+         ss << "\n\t" << ( _OK_ ? "true" : "false" ); } \
+        petitsuite::detail::attach( ss.str(), _OK_ ); \
     } while(0)
 
     // main macro
-#   define test3(A,op,B) do { \
-        auto __a__ = (A); auto __b__ = (B); bool ok = __a__ op __b__; \
-        std::stringstream ss; \
-        ss << (ok ? "[ OK ] " : "[FAIL] " ); \
-        ss << "Test " << (tests::executed+1) << ": "; \
-        ss << #A << ' ' << #op << ' ' << #B; \
-        ss << " (" << __a__ << ' ' << #op << ' ' << __b__ << ") "; \
-        ss << "seen at " << __FILE__ << ':' << __LINE__; \
-        tests::detail::attach( ss.str(), ok ); \
-    } while(0)
-}
+#   define test1(A) test3(A,!=,decltype(A)(0))
 
-/* private API */
-namespace tests
-{
+    /* private API */
     namespace detail {
     extern void attach( const std::string &results, bool ok );
     extern bool queue( void (*fn)(void) );
-
 #   define autotest$impl(str, num) str##num
 #   define autotest$join(str, num) autotest$impl(str, num)
 #   define autotest$line(str)      autotest$join(str, __LINE__)
     }
 }
-
