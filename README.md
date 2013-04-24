@@ -21,53 +21,57 @@ test3()
 
 autotest()
 ----------
-- `autotest(name) { /*code*/ }`'s are always performed at end of program.
+- `autotest(before) { /*code*/ }`'s are always performed before start of program.
+- `autotest(after) { /*code*/ }`'s are always performed after end of program.
 
 Sample
 ------
-<pre>
+```
 #include "petitsuite.hpp"
 
 int main() {
     int a = 1, b = 2;
 
     test1( 1 == 1 );    // pass
-    test1( 1 &lt;= 0 );    // fail
+    test1( 1 <= 0 );    // fail
 
-    test3( a, &lt;, b );   // pass
-    test3( a, &gt;, b );   // fail
+    test3( 1, <, 2 );   // pass
+    test3( a, >, b );   // fail
     test3( 1, !=, b);   // pass
 
     return 0;
 }
 
-autotest(equality_test) {
-    test3( 2, ==, 2 );  // pass
-    test3( 2, !=, 2 );  // fail
+autotest(before) {            // auto test that runs before main()
+    test3( true, ==, false ); // fail
 }
-</pre>
+
+autotest(after) {             // auto test that runs after main()
+    test3( true, >, false );  // pass
+}
+```
 
 Possible output
 ---------------
-<pre>
+```
 ~/petitsuite>./test
-[ OK ] Test 1 at sample.cc:6
-[ OK ] Test 3 at sample.cc:9
-[ OK ] Test 5 at sample.cc:11
-[ OK ] Test 6 at sample.cc:17
+[ OK ] Test 2 at sample.cc:6
+[ OK ] Test 4 at sample.cc:9
+[ OK ] Test 6 at sample.cc:11
+[ OK ] Test 7 at sample.cc:21
 
-[FAIL] Test 2 at sample.cc:7
-        1 &lt;= 0
-        false
-[FAIL] Test 4 at sample.cc:10
-        a &gt; b
-        1 &gt; 2
-        false
-[FAIL] Test 7 at sample.cc:18
-        2 != 2
-        2 != 2
-        false
+[FAIL] Test 1 at sample.cc:17
+        true == false
+        1 == 0
+        (false)
+[FAIL] Test 3 at sample.cc:7
+        1 <= 0
+        (false)
+[FAIL] Test 5 at sample.cc:10
+        a > b
+        1 > 2
+        (false)
 
 Oops! 3/7 tests failed! :(
 ~/petitsuite>
-</pre>
+```

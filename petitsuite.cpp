@@ -84,10 +84,9 @@ namespace petitsuite
                 (*on_warning)( results );
         }
 
-        bool queue( void (*N)(void) )
+        bool queue( void (*N)(void), bool run )
         {
-            get().all.insert(N);
-            return true;
+            return run ? ( N(), true ) : ( get().all.insert(N), true );
         }
     }
 }

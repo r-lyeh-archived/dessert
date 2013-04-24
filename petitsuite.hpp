@@ -46,22 +46,24 @@ namespace petitsuite
     extern void (*on_report)( const std::string &right, const std::string &wrong, const std::string &footer );
 
     // optional macro
-#   define autotest(n) \
+#   define autotest(after) \
         static void autotest$line(n)(); \
-        const bool autotest$line(autotest_) = petitsuite::detail::queue( autotest$line(n) ); \
+        const bool autotest$line(autotest_) = petitsuite::detail::queue( autotest$line(n), std::string(#after) != "after" ); \
         void autotest$line(n)()
 
     // main macro
 #   define test3(A,op,B) do { \
-        std::stringstream ss; \
-        auto _A_ = (A); auto _B_ = (B); auto _OK_ = _A_ op _B_; \
-        ss << ( _OK_ ? "[ OK ]" : "[FAIL]" ) << " Test " << (1+petitsuite::executed); \
-        ss << " at " __FILE__ ":" << __LINE__; if( !_OK_ ) { \
-         if( std::string("decltype(" #A ")(0)") != #B ) \
-          /**/ ss << "\n\t" #A " " #op " " #B "\n\t" << _A_ << " " #op " " << _B_; \
-          else ss << "\n\t" #A; \
-         ss << "\n\t" << ( _OK_ ? "true" : "false" ); } \
-        petitsuite::detail::attach( ss.str(), _OK_ ); \
+        std::stringstream _SS_, _TT_; \
+        auto _A_ = (A); auto _B_ = (B); auto _OK_ = ( _A_ op decltype(A)(_B_) ); \
+        _SS_ << ( _OK_ ? "[ OK ]" : "[FAIL]" ) << " Test " << (1+petitsuite::executed); \
+        _SS_ << " at " __FILE__ ":" << __LINE__; if( !_OK_ ) { \
+         if( std::string("decltype(" #A ")(0)") != #B ) { \
+            const char *_EXPR_ = "\n\t" #A " " #op " " #B; \
+            _TT_ << "\n\t" << _A_ << " " #op " " << _B_; \
+            _SS_ << ( _TT_.str() != _EXPR_ ? _EXPR_ : "" ) << _TT_.str(); \
+         } else _SS_ << "\n\t" #A; \
+         _SS_ << "\n\t" << ( _OK_ ? "(true)" : "(false)" ); } \
+        petitsuite::detail::attach( _SS_.str(), _OK_ ); \
     } while(0)
 
     // main macro
@@ -70,7 +72,7 @@ namespace petitsuite
     /* private API */
     namespace detail {
     extern void attach( const std::string &results, bool ok );
-    extern bool queue( void (*fn)(void) );
+    extern bool queue( void (*fn)(void), bool run );
 #   define autotest$impl(str, num) str##num
 #   define autotest$join(str, num) autotest$impl(str, num)
 #   define autotest$line(str)      autotest$join(str, __LINE__)
