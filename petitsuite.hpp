@@ -27,7 +27,7 @@
  * - Throw tests.
  * - Memory tests.
 
- * - rlyeh
+ * - rlyeh ~~ listening to Led Zeppelin / No Quarter
  */
 
 #pragma once
@@ -50,6 +50,15 @@ namespace petitsuite
         static void autotest$line(n)(); \
         const bool autotest$line(autotest_) = petitsuite::detail::queue( autotest$line(n), std::string(#after) != "after" ); \
         void autotest$line(n)()
+
+    // optional macro
+#   define testexception(...) do { try { { __VA_ARGS__; } { \
+            struct custom : public std::string { \
+                custom(const char *expr_ = "") : std::string(expr_) {} \
+                bool operator>>( const custom &other ) { return false; }}; \
+            custom given_expression("{ " #__VA_ARGS__ " }"), does_not_throw("produces no exception"); \
+            test3( given_expression, >>, does_not_throw ); } \
+        } catch(...) { test1( true ); } } while(0)
 
     // main macro
 #   define test3(A,op,B) do { \

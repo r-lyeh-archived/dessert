@@ -10,6 +10,14 @@ int main() {
     test3( a, >, b );   // fail
     test3( 1, !=, b);   // pass
 
+    testexception(      // fail, no exception is thrown
+        int a, b, c = 100;
+        std::string hello = "hello world";
+    );
+    testexception(      // pass, an exception is thrown
+        throw int(-100);
+    );
+
     return 0;
 }
 

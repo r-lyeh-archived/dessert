@@ -19,6 +19,11 @@ test3()
 - `test3(expression1,operator,expression2)` behaves similar to `assert(expression1 operator expression2)` but does not break execution on fails.
 - `test3(expression1,operator,expression2)` will output verbosely all fails. Macro requires both expression types to be `std::ostream<<` friendly.
 
+testexception()
+---------------
+- `testexception( /*code*/ )` macro expects given `/*code*/` to throw any exception.
+- `testexception( /*code*/ )` will output verbosely all fails.
+
 autotest()
 ----------
 - `autotest(before) { /*code*/ }`'s are always performed before start of program.
@@ -39,6 +44,14 @@ int main() {
     test3( a, >, b );   // fail
     test3( 1, !=, b);   // pass
 
+    testexception(      // fail, no exception is thrown
+        int a, b, c = 100;
+        std::string hello = "hello world";
+    );
+    testexception(      // pass, an exception is thrown
+        throw int(-100);
+    );
+
     return 0;
 }
 
@@ -58,9 +71,10 @@ Possible output
 [ OK ] Test 2 at sample.cc:6
 [ OK ] Test 4 at sample.cc:9
 [ OK ] Test 6 at sample.cc:11
-[ OK ] Test 7 at sample.cc:21
+[ OK ] Test 8 at sample.cc:19
+[ OK ] Test 9 at sample.cc:29
 
-[FAIL] Test 1 at sample.cc:17
+[FAIL] Test 1 at sample.cc:25
         true == false
         1 == 0
         (false)
@@ -71,7 +85,11 @@ Possible output
         a > b
         1 > 2
         (false)
+[FAIL] Test 7 at sample.cc:16
+        given_expression >> does_not_throw
+        { int a, b, c = 100; std::string hello = "hello world"; } >> produces no exception
+        (false)
 
-Oops! 3/7 tests failed! :(
+Oops! 4/9 tests failed! :(
 ~/petitsuite>
 ```
