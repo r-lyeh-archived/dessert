@@ -43,8 +43,8 @@ namespace petitsuite
 
             ~on_shutdown()
             {
-                for( auto &test : all )
-                    (*test)();
+                for( auto test = all.begin(), end = all.end(); test != end; ++test )
+                    (**test)();
 
                 if( !executed )
                     return;
