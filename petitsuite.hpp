@@ -63,7 +63,7 @@ namespace petitsuite
     // main macro
 #   define test3(A,op,B) do { \
         std::stringstream _SS_, _TT_; \
-        auto _A_ = (A); auto _B_ = (B); auto _OK_ = ( _A_ op decltype(A)(_B_) ); \
+        auto _A_ = (A); decltype(_A_) _B_ = decltype(_A_)(B); auto _OK_ = ( _A_ op _B_ ); \
         _SS_ << ( _OK_ ? "[ OK ]" : "[FAIL]" ) << " Test " << (1+petitsuite::executed); \
         _SS_ << " at " __FILE__ ":" << __LINE__; if( !_OK_ ) { \
          if( std::string("decltype(" #A ")(0)") != #B ) { \
