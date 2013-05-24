@@ -45,12 +45,6 @@ namespace petitsuite
                 for( auto test = autos.begin(), end = autos.end(); test != end; ++test )
                     (**test)();
 
-                if( !executed )
-                    return;
-
-                if( !on_report )
-                    return;
-
                 std::stringstream footer, right, wrong;
 
                 right << passed;
@@ -61,7 +55,7 @@ namespace petitsuite
                 else
                     footer << "Oops! " << failed << '/' << executed << " tests failed! :(" << std::endl;
 
-                (*on_report)( right.str(), wrong.str(), footer.str() );
+                if( executed && on_report ) (*on_report)( right.str(), wrong.str(), footer.str() );
             }
         };
 
@@ -71,11 +65,11 @@ namespace petitsuite
         }
     }
 
-    bool run() {
-        size_t _failed = failed;
+    std::string run() {
+        size_t logerrorlen = get().errors.size();
         for( auto test = get().units.begin(), end = get().units.end(); test != end; ++test )
             (**test)();
-        return _failed == failed;
+        return get().errors.substr( logerrorlen );
     }
 
     namespace detail
@@ -84,14 +78,12 @@ namespace petitsuite
             if( ok ) executed++, passed++, get().passed += results + '\n';
             else     executed++, failed++, get().errors += results + '\n';
 
-            if( (!ok) && on_warning )
-                (*on_warning)( results );
+            if( on_warning ) (*on_warning)( results );
         }
 
         bool queue( void (*N)(void), bool is_unittest, bool exec_now ) {
-            if( !is_unittest )
-                return exec_now ? ( N(), true ) : ( get().autos.insert(N), true );
-            return get().units.insert(N), true;
+            return is_unittest ? ( get().units.insert(N), true ) :
+            ( exec_now ? ( N(), true ) : ( get().autos.insert(N), true ) );
         }
     }
 }

@@ -66,32 +66,32 @@ namespace petitsuite
 
     // optional macro
 #   define autotest(after) \
-        static void autotest$line(n)(); \
-        const bool autotest$line(autotest_) = petitsuite::detail::queue( autotest$line(n), false, std::string(#after) != "after" ); \
-        void autotest$line(n)()
+        static void test$line(n)(); \
+        const bool test$line(autotest_) = petitsuite::detail::queue( test$line(n), false, std::string(#after) != "after" ); \
+        void test$line(n)()
 
     // optional macro
 #   define unittest() \
-        static void autotest$line(n)(); \
-        const bool autotest$line(autotest_) = petitsuite::detail::queue( autotest$line(n), true, false ); \
-        void autotest$line(n)()
+        static void test$line(n)(); \
+        const bool test$line(autotest_) = petitsuite::detail::queue( test$line(n), true, false ); \
+        void test$line(n)()
 
     // optional read-only stats
     extern size_t passed, failed, executed;
 
-    // optional overridable callbacks: ie, petitsuite::on_warning = my_callback_fn;
+    // optional overridable callbacks, ie: petitsuite::on_warning = my_callback_fn;
     extern void (*on_warning)( const std::string &message );
     extern void (*on_report)( const std::string &right, const std::string &wrong, const std::string &footer );
 
     // optional continuous integration tests (runs all compiled unit tests)
-    bool run();
+    std::string run();
 
     /* private API */
     namespace detail {
     extern void attach( const std::string &results, bool ok );
     extern bool queue( void (*fn)(void), bool is_unittest, bool exec_now );
-#   define autotest$impl(str, num) str##num
-#   define autotest$join(str, num) autotest$impl(str, num)
-#   define autotest$line(str)      autotest$join(str, __LINE__)
+#   define test$impl(str, num) str##num
+#   define test$join(str, num) test$impl(str, num)
+#   define test$line(str)      test$join(str, __LINE__)
     }
 }
