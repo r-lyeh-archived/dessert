@@ -15,8 +15,7 @@ namespace petitsuite
     void default_on_warning( const std::string &message )
     {}
 
-    void default_on_report( const std::string &right, const std::string &wrong, const std::string &footer )
-    {
+    void default_on_report( const std::string &right, const std::string &wrong, const std::string &footer ) {
         // We could use iostreams in here (std::cerr). However, we are using fprintf()
         // because global C++ objects like std::cerr might get destroyed before
         // we reach this function (report is usually shown after main() has finished).
@@ -39,11 +38,11 @@ namespace petitsuite
         struct on_shutdown
         {
             std::string passed, errors;
-            std::set< void(*)(void) > all;
+            std::set< void(*)(void) > autos;
+            std::set< void(*)(void) > units;
 
-            ~on_shutdown()
-            {
-                for( auto test = all.begin(), end = all.end(); test != end; ++test )
+            ~on_shutdown() {
+                for( auto test = autos.begin(), end = autos.end(); test != end; ++test )
                     (**test)();
 
                 if( !executed )
@@ -66,17 +65,22 @@ namespace petitsuite
             }
         };
 
-        on_shutdown &get()
-        {
+        on_shutdown &get() {
             static on_shutdown _;
             return _;
         }
     }
 
+    bool run() {
+        size_t _failed = failed;
+        for( auto test = get().units.begin(), end = get().units.end(); test != end; ++test )
+            (**test)();
+        return _failed == failed;
+    }
+
     namespace detail
     {
-        void attach( const std::string &results, bool ok )
-        {
+        void attach( const std::string &results, bool ok ) {
             if( ok ) executed++, passed++, get().passed += results + '\n';
             else     executed++, failed++, get().errors += results + '\n';
 
@@ -84,9 +88,10 @@ namespace petitsuite
                 (*on_warning)( results );
         }
 
-        bool queue( void (*N)(void), bool run )
-        {
-            return run ? ( N(), true ) : ( get().all.insert(N), true );
+        bool queue( void (*N)(void), bool is_unittest, bool exec_now ) {
+            if( !is_unittest )
+                return exec_now ? ( N(), true ) : ( get().autos.insert(N), true );
+            return get().units.insert(N), true;
         }
     }
 }

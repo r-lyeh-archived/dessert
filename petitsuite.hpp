@@ -1,5 +1,5 @@
 /*
- * A lightweight and simple test framework with no dependencies. Requires C++11.
+ * A lightweight and simple C++11 test framework with no dependencies.
  * Copyright (c) 2012-2013, Mario 'rlyeh' Rodriguez
 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,7 +24,6 @@
  * - Mockups.
  * - Suites and chain tests.
  * - Benchmark tests.
- * - Throw tests.
  * - Memory tests.
 
  * - rlyeh ~~ listening to Led Zeppelin / No Quarter
@@ -38,27 +37,8 @@
 namespace petitsuite
 {
     /* public API */
-    // optional read-only stats
-    extern size_t passed, failed, executed;
-
-    // optional overridable callbacks: ie, petitsuite::on_warning = my_callback_fn;
-    extern void (*on_warning)( const std::string &message );
-    extern void (*on_report)( const std::string &right, const std::string &wrong, const std::string &footer );
-
-    // optional macro
-#   define autotest(after) \
-        static void autotest$line(n)(); \
-        const bool autotest$line(autotest_) = petitsuite::detail::queue( autotest$line(n), std::string(#after) != "after" ); \
-        void autotest$line(n)()
-
-    // optional macro
-#   define testexception(...) do { try { { __VA_ARGS__; } { \
-            struct custom : public std::string { \
-                custom(const char *expr_ = "") : std::string(expr_) {} \
-                bool operator>>( const custom &other ) { return false; }}; \
-            custom given_expression("{ " #__VA_ARGS__ " }"), does_not_throw("produces no exception"); \
-            test3( given_expression, >>, does_not_throw ); } \
-        } catch(...) { test1( true ); } } while(0)
+    // main macro
+#   define test1(A) test3(A,!=,decltype(A)(0))
 
     // main macro
 #   define test3(A,op,B) do { \
@@ -75,13 +55,41 @@ namespace petitsuite
         petitsuite::detail::attach( _SS_.str(), _OK_ ); \
     } while(0)
 
-    // main macro
-#   define test1(A) test3(A,!=,decltype(A)(0))
+    // optional macro
+#   define testexception(...) do { try { { __VA_ARGS__; } { \
+            struct custom : public std::string { \
+                custom(const char *expr_ = "") : std::string(expr_) {} \
+                bool operator>>( const custom &other ) { return false; }}; \
+            custom given_expression("{ " #__VA_ARGS__ " }"), does_not_throw("produces no exception"); \
+            test3( given_expression, >>, does_not_throw ); } \
+        } catch(...) { test1( true ); } } while(0)
+
+    // optional macro
+#   define autotest(after) \
+        static void autotest$line(n)(); \
+        const bool autotest$line(autotest_) = petitsuite::detail::queue( autotest$line(n), false, std::string(#after) != "after" ); \
+        void autotest$line(n)()
+
+    // optional macro
+#   define unittest() \
+        static void autotest$line(n)(); \
+        const bool autotest$line(autotest_) = petitsuite::detail::queue( autotest$line(n), true, false ); \
+        void autotest$line(n)()
+
+    // optional read-only stats
+    extern size_t passed, failed, executed;
+
+    // optional overridable callbacks: ie, petitsuite::on_warning = my_callback_fn;
+    extern void (*on_warning)( const std::string &message );
+    extern void (*on_report)( const std::string &right, const std::string &wrong, const std::string &footer );
+
+    // optional continuous integration tests (runs all compiled unit tests)
+    bool run();
 
     /* private API */
     namespace detail {
     extern void attach( const std::string &results, bool ok );
-    extern bool queue( void (*fn)(void), bool run );
+    extern bool queue( void (*fn)(void), bool is_unittest, bool exec_now );
 #   define autotest$impl(str, num) str##num
 #   define autotest$join(str, num) autotest$impl(str, num)
 #   define autotest$line(str)      autotest$join(str, __LINE__)

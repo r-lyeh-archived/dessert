@@ -18,6 +18,8 @@ int main() {
         throw int(-100);
     );
 
+    petitsuite::run();  // run all optional unittests
+
     return 0;
 }
 
@@ -27,4 +29,12 @@ autotest(before) {            // auto test that runs before main()
 
 autotest(after) {             // auto test that runs after main()
     test3( true, >, false );  // pass
+}
+
+unittest() {                  // unit test that runs everytime petitsuite::run() is invoked
+    test1( 2 + 2 == 4 );      // pass
+}
+
+unittest() {                  // unit test that runs everytime petitsuite::run() is invoked
+    test3( 2 + 2, >, 4 );     // fail
 }

@@ -29,6 +29,10 @@ autotest()
 - `autotest(before) { /*code*/ }`'s are always performed before start of program.
 - `autotest(after) { /*code*/ }`'s are always performed after end of program.
 
+unittest()
+----------
+- `unittest() { /*code*/ }`'s are always performed when `petitsuite::run()` is invoked.
+
 Sample
 ------
 ```
@@ -52,6 +56,8 @@ int main() {
         throw int(-100);
     );
 
+    petitsuite::run();  // run all optional unit tests
+
     return 0;
 }
 
@@ -61,6 +67,14 @@ autotest(before) {            // auto test that runs before main()
 
 autotest(after) {             // auto test that runs after main()
     test3( true, >, false );  // pass
+}
+
+unittest() {                  // unit test that runs everytime petitsuite::run() is invoked
+    test1( 2 + 2 == 4 );      // pass
+}
+
+unittest() {                  // unit test that runs everytime petitsuite::run() is invoked
+    test3( 2 + 2, >, 4 );     // fail
 }
 ```
 
@@ -72,9 +86,10 @@ Possible output
 [ OK ] Test 4 at sample.cc:9
 [ OK ] Test 6 at sample.cc:11
 [ OK ] Test 8 at sample.cc:19
-[ OK ] Test 9 at sample.cc:29
+[ OK ] Test 9 at sample.cc:35
+[ OK ] Test 11 at sample.cc:31
 
-[FAIL] Test 1 at sample.cc:25
+[FAIL] Test 1 at sample.cc:27
         true == false
         1 == 0
         (false)
@@ -89,7 +104,11 @@ Possible output
         given_expression >> does_not_throw
         { int a, b, c = 100; std::string hello = "hello world"; } >> produces no exception
         (false)
+[FAIL] Test 10 at sample.cc:39
+        2 + 2 > 4
+        4 > 4
+        (false)
 
-Oops! 4/9 tests failed! :(
+Oops! 5/11 tests failed! :(
 ~/petitsuite>
 ```
