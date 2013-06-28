@@ -1,40 +1,70 @@
+#include <string>
 #include "petitsuite.hpp"
 
-int main() {
+unittest("basic tests")
+{
     int a = 1, b = 2;
 
-    test1( 1 == 1 );          // pass
-    test1( 1 <= 0 );          // fail
+    // testN(...) macros expect given expression(s) to be true
+    // N matches number of provided arguments
+    test1( a < b );
+    test2( a < b, "this shall pass; comment built on " << __DATE__ );
+    test3( a,<,b );
+    test4( a,>,b, "please call Aristotle (phone no: +30 " << 23760 << ") if this test fails" );
 
-    test3( 1, <, 2 );         // pass
-    test3( a, >, b );         // fail
-    test3( 1, !=, b);         // pass
+    // missN(...) macros expect given expression(s) to be false
+    // N matches number of provided arguments
+    miss1( a >= b );
+    miss2( a >= b, "this shall pass; comment built on " << __DATE__ );
+    miss3( a,>=,b );
+    miss4( a,>=,b, "false positive; it's ok" );
 
-    testexception(            // fail, no exception is thrown
-        int a, b, c = 100;
-        std::string hello = "hello world";
+    // testthrow(/*code*/) to test exception throwing
+    testthrow(
+        // this shall pass, exception thrown
+        std::string hello = "world";
+        hello.at(10) = 'c';
     );
-    testexception(            // pass, an exception is thrown
-        throw int(-100);
+    testthrow(
+        // this shall fail, no exception thrown
+        std::string hello = "world";
+        hello += hello;
     );
 
-    petitsuite::units();      // run all optional unit tests
+    // testcatch(/*code*/) to test exception catching
+    testcatch(
+        // this shall pass, exceptions catched
+        try {
+            std::string hello = "world";
+            hello.at(10) = 'c';
+        } catch(...) {}
+    );
+    testcatch(
+        // this shall fail, no exceptions catched
+        std::string hello = "world";
+        hello.at(10) = 'c';
+    );
+}
 
+unittest() {                  // unittest description in parentheses is optional
+    test3( 1,==,2 );          // this shall fail
+}
+
+int main() {
+    // run all defined unit-tests above.
+    // auto-tests below do not need this.
+    petitsuite::units();
     return 0;
 }
 
-unittest() {                  // unit test that runs everytime petitsuite::units() is invoked
-    test1( 2 + 2 == 4 );      // pass
+autotest(before) {            // auto test that runs *before* main()
+    test3( 1, <, 2 );
 }
 
-unittest() {                  // unit test that runs everytime petitsuite::units() is invoked
-    test3( 2 + 2, >, 4 );     // fail
+autotest(before) {            // auto test that runs *before* main()
+    test3( 1, <, 20 );
 }
 
-autotest(before) {            // auto test that runs before main()
-    test3( true, ==, false ); // fail
-}
-
-autotest(after) {             // auto test that runs after main()
-    test3( true, >, false );  // pass
+autotest(after) {             // auto test that runs *after* main()
+    test3( 1, <, 2 );
 }
