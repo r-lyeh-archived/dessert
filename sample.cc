@@ -47,13 +47,15 @@ unittest("basic tests")
 }
 
 unittest() {                  // unittest description in parentheses is optional
-    test3( 1,==,2 );          // this shall fail
+    test3( 1,==,1 );          // this shall pass
 }
 
 int main() {
-    // run all defined unit-tests above.
-    // auto-tests below do not need this.
+    // petitsuite::units() runs batch of all unit-tests defined above.
+    // however, auto-tests defined below do not need this.
     petitsuite::units();
+    // we are done. logs will be printed to stdout when app finishes.
+    // to change this behaviour point on_report/on_warning callbacks to your own.
     return 0;
 }
 
@@ -65,6 +67,8 @@ autotest(before) {            // auto test that runs *before* main()
     test3( 1, <, 20 );
 }
 
+const char *hello = "world";
+
 autotest(after) {             // auto test that runs *after* main()
-    test3( 1, <, 2 );
+    miss1( hello );           // this shall fail
 }

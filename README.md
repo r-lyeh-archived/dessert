@@ -3,7 +3,7 @@ petitsuite
 
 - Petitsuite is a lightweight and simple test C++11 framework.
 - Smart. Lhs, rhs values are reported when tests fail.
-- Tiny. Barebone suite is only a single `test4()` macro.
+- Tiny. Around 200 LOC. Barebone suite is only a single `test4()` macro.
 - Easy to integrate. One header and one source file.
 - Cross-platform. No extra dependencies.
 - Both automatic and batch-driven unit-testing.
@@ -117,13 +117,15 @@ unittest("basic tests")
 }
 
 unittest() {                  // unittest description in parentheses is optional
-    test3( 1,==,2 );          // this shall fail
+    test3( 1,==,1 );          // this shall pass
 }
 
 int main() {
-    // run all defined unit-tests above.
-    // auto-tests below do not need this.
+    // petitsuite::units() runs batch of all unit-tests defined above.
+    // however, auto-tests defined below do not need this.
     petitsuite::units();
+    // we are done. logs will be printed to stdout when app finishes.
+    // to change this behaviour point on_report/on_warning callbacks to your own.
     return 0;
 }
 
@@ -135,8 +137,10 @@ autotest(before) {            // auto test that runs *before* main()
     test3( 1, <, 20 );
 }
 
+const char *hello = "world";
+
 autotest(after) {             // auto test that runs *after* main()
-    test3( 1, <, 2 );
+    miss1( hello );           // this shall fail
 }
 ```
 
@@ -145,8 +149,8 @@ Possible output
 ```
 ~/petitsuite>g++ sample.cc petitsuite.cpp -std=c++11 -g -o test
 ~/petitsuite>./test
-[ OK ]  Test 1 at sample.cc:61
-[ OK ]  Test 2 at sample.cc:65
+[ OK ]  Test 1 at sample.cc:63
+[ OK ]  Test 2 at sample.cc:67
 [ OK ]  Test 3 at sample.cc:10
 [ OK ]  Test 4 at sample.cc:11
 [ OK ]  Test 5 at sample.cc:12
@@ -156,7 +160,7 @@ Possible output
 [ OK ]  Test 10 at sample.cc:20
 [ OK ]  Test 11 at sample.cc:27
 [ OK ]  Test 13 at sample.cc:41
-[ OK ]  Test 16 at sample.cc:69
+[ OK ]  Test 15 at sample.cc:50
 
 [FAIL]  Test 6 at sample.cc:13 - please call Aristotle (phone no: +30 23760) if this test fails
         a > b
@@ -170,9 +174,10 @@ Possible output
         given_code >> does_not_catch_thrown_exception
         { std::string hello = "world"; hello.at(10) = 'c'; } >> does not catch thrown exception
         false (true expected)
-[FAIL]  Test 15 at sample.cc:50
-        1 == 2
-        false (true expected)
+[FAIL]  Test 16 at sample.cc:73
+        hello
+        world
+        true (false expected)
 
 Oops! 4/16 tests failed! :(
 ~/petitsuite>
