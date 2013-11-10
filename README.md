@@ -71,8 +71,7 @@ Sample
 #include <string>
 #include "petitsuite.hpp"
 
-unittest("basic tests")
-{
+int main() {
     int a = 1, b = 2;
 
     // testN(...) macros expect given expression(s) to be true
@@ -114,33 +113,30 @@ unittest("basic tests")
         std::string hello = "world";
         hello.at(10) = 'c';
     );
-}
 
-unittest() {                  // unittest description in parentheses is optional
-    test3( 1,==,1 );          // this shall pass
-}
-
-int main() {
-    // petitsuite::units() runs batch of all unit-tests defined above.
-    // however, auto-tests defined below do not need this.
+    // petitsuite::units() runs batch of all *unit*tests (defined below).
+    // however, *auto*tests do not need this (also defined below).
     petitsuite::units();
+
     // we are done. logs will be printed to stdout when app finishes.
     // to change this behaviour point on_report/on_warning callbacks to your own.
     return 0;
 }
 
-autotest(before) {            // auto test that runs *before* main()
-    test3( 1, <, 2 );
+unittest("basic tests") {     // unit test that runs on petitsuite::units()
+    test3( 1,==,1 );          // this shall pass
 }
-
-autotest(before) {            // auto test that runs *before* main()
-    test3( 1, <, 20 );
+unittest() {                  // unittest description in parentheses is optional
+    test3( 1,>,2 );           // this shall fail
 }
 
 const char *hello = "world";
 
 autotest(after) {             // auto test that runs *after* main()
     miss1( hello );           // this shall fail
+}
+autotest(before) {            // auto test that runs *before* main()
+    test3( 1, <, 2 );
 }
 ```
 
@@ -149,41 +145,43 @@ Possible output
 ```
 ~/petitsuite>g++ sample.cc petitsuite.cpp -std=c++11 -g -o test
 ~/petitsuite>./test
-[ OK ]  Test 1 at sample.cc:63
-[ OK ]  Test 2 at sample.cc:67
+[ OK ]  Test 1 at sample.cc:69
+[ OK ]  Test 2 at sample.cc:9
 [ OK ]  Test 3 at sample.cc:10
 [ OK ]  Test 4 at sample.cc:11
-[ OK ]  Test 5 at sample.cc:12
+[ OK ]  Test 6 at sample.cc:16
 [ OK ]  Test 7 at sample.cc:17
 [ OK ]  Test 8 at sample.cc:18
 [ OK ]  Test 9 at sample.cc:19
-[ OK ]  Test 10 at sample.cc:20
-[ OK ]  Test 11 at sample.cc:27
-[ OK ]  Test 13 at sample.cc:41
-[ OK ]  Test 15 at sample.cc:50
+[ OK ]  Test 10 at sample.cc:26
+[ OK ]  Test 12 at sample.cc:40
+[ OK ]  Test 14 at sample.cc:57
 
-[FAIL]  Test 6 at sample.cc:13 - please call Aristotle (phone no: +30 23760) if this test fails
+[FAIL]  Test 5 at sample.cc:12 - please call Aristotle (phone no: +30 23760) if this test fails
         a > b
         1 > 2
         false (true expected)
-[FAIL]  Test 12 at sample.cc:32
+[FAIL]  Test 11 at sample.cc:31
         given_code >> throws_no_exception
         { std::string hello = "world"; hello += hello; } >> throws no exception
         false (true expected)
-[FAIL]  Test 14 at sample.cc:46
+[FAIL]  Test 13 at sample.cc:45
         given_code >> does_not_catch_thrown_exception
         { std::string hello = "world"; hello.at(10) = 'c'; } >> does not catch thrown exception
         false (true expected)
-[FAIL]  Test 16 at sample.cc:73
+[FAIL]  Test 15 at sample.cc:60
+        1 > 2
+        false (true expected)
+[FAIL]  Test 16 at sample.cc:66
         hello
         world
         true (false expected)
 
-Oops! 4/16 tests failed! :(
+Oops! 5/16 tests failed! :(
 ~/petitsuite>
-~/petitsuite>export PETITSUITE_BREAKON=10
+~/petitsuite>export PETITSUITE_BREAKON=5
 ~/petitsuite>./test
-<petitsuite/petitsuite.cpp> says: breakpoint requested on test #10
+<petitsuite/petitsuite.cpp> says: breakpoint requested on test #5
         Assertion failed: ! "<petitsuite/petitsuite.cpp> says: breakpoint requested", file petitsuite.cpp, line 61
 Aborted.
 ```

@@ -1,8 +1,7 @@
 #include <string>
 #include "petitsuite.hpp"
 
-unittest("basic tests")
-{
+int main() {
     int a = 1, b = 2;
 
     // testN(...) macros expect given expression(s) to be true
@@ -44,31 +43,28 @@ unittest("basic tests")
         std::string hello = "world";
         hello.at(10) = 'c';
     );
-}
 
-unittest() {                  // unittest description in parentheses is optional
-    test3( 1,==,1 );          // this shall pass
-}
-
-int main() {
-    // petitsuite::units() runs batch of all unit-tests defined above.
-    // however, auto-tests defined below do not need this.
+    // petitsuite::units() runs batch of all *unit*tests (defined below).
+    // however, *auto*tests do not need this (also defined below).
     petitsuite::units();
+
     // we are done. logs will be printed to stdout when app finishes.
     // to change this behaviour point on_report/on_warning callbacks to your own.
     return 0;
 }
 
-autotest(before) {            // auto test that runs *before* main()
-    test3( 1, <, 2 );
+unittest("basic tests") {     // unit test that runs on petitsuite::units()
+    test3( 1,==,1 );          // this shall pass
 }
-
-autotest(before) {            // auto test that runs *before* main()
-    test3( 1, <, 20 );
+unittest() {                  // unittest description in parentheses is optional
+    test3( 1,>,2 );           // this shall fail
 }
 
 const char *hello = "world";
 
 autotest(after) {             // auto test that runs *after* main()
     miss1( hello );           // this shall fail
+}
+autotest(before) {            // auto test that runs *before* main()
+    test3( 1, <, 2 );
 }
