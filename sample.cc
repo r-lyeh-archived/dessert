@@ -60,11 +60,9 @@ unittest() {                  // unittest description in parentheses is optional
     test3( 1,>,2 );           // this shall fail
 }
 
-const char *hello = "world";
-
 autotest(after) {             // auto test that runs *after* main()
-    miss1( hello );           // this shall fail
+    test3( 1,==,1 );          // this shall pass
 }
 autotest(before) {            // auto test that runs *before* main()
-    test3( 1, <, 2 );
+    test3( 1,>,2 );           // this shall fail
 }

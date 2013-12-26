@@ -4,6 +4,7 @@
 #pragma once
 #include <sstream>
 #include <string>
+#include <chrono>
 
 namespace petitsuite
 {
@@ -57,7 +58,7 @@ namespace petitsuite
     /* private API */
     namespace detail {
     extern void try_breakpoint( unsigned testno );
-    extern void queue_test( const std::string &results, bool ok );
+    extern void queue_test( const std::string &results, bool ok, double duration );
     extern bool queue_auto( void (*fn)(void), bool exec_now );
     extern bool queue_unit( void (*fn)(void) );
 #   define petit$impl(str, num) str##num
@@ -69,17 +70,18 @@ namespace petitsuite
 #   define testX(SIGN,A,OP,B,...) [&]() -> bool { \
         auto _TESTN_ = 1+petitsuite::executed(); \
         auto _HASBP_ = petitsuite::has_breakpoint( _TESTN_ ); \
-        petitsuite::detail::try_breakpoint( _TESTN_ ); \
         std::stringstream _SS_, _TT_; \
+        using timer = std::chrono::high_resolution_clock; auto _START_ = timer::now(); \
         auto _A_ = (A); auto _B_ = decltype(_A_)(B); auto _OK_ = ( _A_ OP _B_ ); if( !SIGN ) _OK_ = !_OK_; \
+        auto _TIME_ = double((timer::now() - _START_).count()) * timer::period::num / timer::period::den; \
         _SS_ << ( _OK_ ? "[ OK ]" : "[FAIL]" ) << ( _HASBP_ ? "* " : "  " ) << "Test " << _TESTN_; \
-        _SS_ << " at " __FILE__ ":" << __LINE__; if( !_OK_ ) { std::string _EXPR_; \
+        _SS_ << " at " __FILE__ ":" << __LINE__ << " (" << _TIME_ << "s)"; if( !_OK_ ) { std::string _EXPR_; \
          if( std::string("0") != #__VA_ARGS__ ) _SS_ << " - ", _SS_ << __VA_ARGS__; \
          _EXPR_  = "\n\t" #A;      _TT_ << "\n\t" << _A_; if( std::string("00") != #B ) {\
          _EXPR_ += " " #OP " " #B; _TT_ << " " #OP " " << _B_; } \
          _SS_ << ( _TT_.str() != _EXPR_ ? _EXPR_ : "" ) << _TT_.str(); \
          _SS_ << "\n\t" << ( _OK_ ^ (!SIGN) ? "true (false expected)" : "false (true expected)" ); } \
-        petitsuite::detail::queue_test( _SS_.str(), _OK_ ); \
+        petitsuite::detail::queue_test( _SS_.str(), _OK_, _TIME_ ); \
         return _OK_ ? true : false; }()
     }
 }

@@ -44,11 +44,12 @@ namespace petitsuite
 {
     namespace
     {
+        double _duration = 0;
         size_t _passed = 0, _failed = 0, _executed = 0, _failed_breakps = 0;
 
         void default_on_report( const std::string &right, const std::string &wrong, const std::string &footer ) {
             // We are using fprintf(stderr...) instead of std::cerr just because global C++ objects might
-            // get destroyed before we reach this function (as report is usually shown after main() has ended)
+            // get destroyed before we reach this function (note: report is usually shown after main() has ended)
             if(  right.size() ) fprintf( stderr, "%s\n",  right.c_str() );
             if(  wrong.size() ) fprintf( stderr, "%s\n",  wrong.c_str() );
             if( footer.size() ) fprintf( stderr, "%s\n", footer.c_str() );
@@ -69,10 +70,11 @@ namespace petitsuite
             std::map< unsigned, std::string > breakpoints;
 
             std::string footer() const {
-                std::stringstream ss, zz;
-                if( _failed_breakps ) zz << "\n(*) failed breakpoint (" << _failed_breakps << " total)";
-                if( !_failed ) return ss << "Ok! All " << _executed << " tests succeeded! :)", ss.str() + zz.str();
-                else           return ss << "Oops! " << _failed << '/' << _executed << " tests failed! :(", ss.str() + zz.str();
+                std::stringstream ss1, ss2;
+                if( _failed_breakps ) ss2 << "\n(*) failed breakpoint (" << _failed_breakps << " total)";
+                                      ss2 << "\nTotal time: " << _duration << " seconds.";
+                if( !_failed ) return ss1 << "Success: " << _executed << " tests passed :)", ss1.str() + ss2.str();
+                else           return ss1 << "Failure: " << _failed << '/' << _executed << " tests failed :(", ss1.str() + ss2.str();
             }
 
             ~on_shutdown() {
@@ -89,9 +91,9 @@ namespace petitsuite
         }
     }
 
-    void detail::queue_test( const std::string &results, bool ok ) {
-        if( ok ) _executed++, _passed++, get().right += results + '\n';
-        else     _executed++, _failed++, get().wrong += results + '\n';
+    void detail::queue_test( const std::string &results, bool ok, double duration ) {
+        if( ok ) _executed++, _passed++, _duration += duration, get().right += results + '\n';
+        else     _executed++, _failed++, _duration += duration, get().wrong += results + '\n';
 
         if( on_warning ) (*on_warning)( results );
     }
