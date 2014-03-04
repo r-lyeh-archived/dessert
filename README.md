@@ -13,17 +13,8 @@ petitsuite
 
 Tests and misses
 ----------------
-testN(...) macros expect given expressions to be true. (N matches number of provided arguments).
-- `test1(expression)` macro expects `expression` to be `true`.
-- `test2(expression,std::ostream comment...)` macro adds `comment`.
-- `test3(expression1,operator,expression2)` macro expects `expression1 operator expression2` to be `true`.
-- `test4(expression1,operator,expression2,std::ostream comment...)` macro adds `comment`.
-
-missN(...) macros expect given expressions to be false. (N matches number of provided arguments).
-- `miss1(expression)` macro expects `expression` to be `false`.
-- `miss2(expression,std::ostream comment...)` macro adds `comment`.
-- `miss3(expression1,operator,expression2)` macro expects `expression1 operator expression2` to be `false`.
-- `miss4(expression1,operator,expression2,std::ostream comment...)` macro adds `comment`.
+- `testN(...)` macros expect given expressions to be `true` (N matches number of provided arguments).
+- `missN(...)` macros expect given expressions to be `false` (N matches number of provided arguments).
 
 ```c++
 int main() {
@@ -32,7 +23,7 @@ int main() {
     // testN(...) macros expect given expression(s) to be true
     // N matches number of provided arguments
     test1( a < b );
-    test2( a < b, "this shall pass; comment built on " << __DATE__ );
+    test2( a < b, "this shall pass; this is an std::ostream comment built on " << __DATE__ );
     test3( a,<,b );
     test4( a,>,b, "please call Aristotle (phone no: +30 " << 23760 << ") if this test fails" );
 
