@@ -1,87 +1,125 @@
-// Lightweight and simple C++11 test framework. No dependencies. MIT licensed.
-// rlyeh, 2012-2013
+/* Lightweight and simple C++11 test framework. No dependencies.
+ * Copyright (c) 2012,2013,2014 Mario 'rlyeh' Rodriguez
+
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+
+ * - rlyeh ~~ listening to Led Zeppelin / No Quarter
+ */
 
 #pragma once
-#include <sstream>
-#include <string>
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
 #include <chrono>
+#include <deque>
+#include <functional>
+#include <string>
 
-namespace petitsuite
-{
-    // public API, primary macros
-#   define test1(A)             testX(  true, A, !=, 00,           0 )
-#   define miss1(A)             testX( false, A, !=, 00,           0 )
-#   define test2(A,...)         testX(  true, A, !=, 00, __VA_ARGS__ )
-#   define miss2(A,...)         testX( false, A, !=, 00, __VA_ARGS__ )
-#   define test3(A,OP,B)        testX(  true, A, OP,  B,           0 )
-#   define miss3(A,OP,B)        testX( false, A, OP,  B,           0 )
-#   define test4(A,OP,B,...)    testX(  true, A, OP,  B, __VA_ARGS__ )
-#   define miss4(A,OP,B,...)    testX( false, A, OP,  B, __VA_ARGS__ )
-
-    // public API, primary macros
-#   define testcatch(...) [&]() -> bool { try { { __VA_ARGS__; } return test1( true ); } catch(...) {} \
-            petitsuite::detail::string given_code("{ " #__VA_ARGS__ " }"), does_not_catch_thrown_exception("does not catch thrown exception"); \
-            return test3( given_code, >>, does_not_catch_thrown_exception ); } ()
-
-#   define testthrow(...) [&]() -> bool { try { { __VA_ARGS__; } \
-            petitsuite::detail::string given_code("{ " #__VA_ARGS__ " }"), throws_no_exception("throws no exception"); \
-            return test3( given_code, >>, throws_no_exception ); } catch(...) {} \
-            return test1( true ); } ()
-
-    // public API, secondary macros (macros to create batches of primary macros)
-#   define autotest(after) \
+/*  Public API */
+#define test(...)    ( petit::suite(#__VA_ARGS__,bool(__VA_ARGS__),__FILE__,__LINE__) < __VA_ARGS__ )
+#define throws(...)  ( [&](){ try { __VA_ARGS__; } catch( ... ) { return true; } return false; }()  )
+#define autotest(after) \
         static void petit$line(petitsuite)(); \
-        static const bool petit$line(autotest_) = petitsuite::detail::queue_auto( petit$line(petitsuite), std::string(#after) != "after" ); \
+        static const bool petit$line(autotest_) = petit::suite::queue( petit$line(petitsuite), #after ); \
         void petit$line(petitsuite)()
 
-#   define unittest(...) \
-        static void petit$line(petitsuite)(); \
-        static const bool petit$line(autotest_) = petitsuite::detail::queue_unit( petit$line(petitsuite) ); \
-        void petit$line(petitsuite)()
+/* API Details */
+namespace petit {
+    class suite {
+        using timer = std::chrono::high_resolution_clock;
+        using now_t = std::chrono::high_resolution_clock::time_point;
+        int ok = false;
+        bool has_bp = false;
+        now_t start = timer::now();
+        std::deque< std::string > expr;
+        enum { BREAKPOINT, BREAKPOINTS, PASSED, FAILED, TESTNO };
+        template<int VAR> static unsigned &get() { static unsigned var[16] = {0}; return var[VAR]; }
+        static std::string time( now_t start ) {
+            return std::to_string( double((timer::now() - start).count()) * timer::period::num / timer::period::den );
+        }
+    public:
+        static bool queue( std::function<void()> fn, const char *const after ) {
+            static auto start = timer::now();
+            static struct install {
+                std::deque< std::function<void()> > all;
+                install() {
+                    get<BREAKPOINT>() = std::stoul( std::getenv("BREAKON") ? std::getenv("BREAKON") : "0" );
+                }
+                ~install() {
+                    for( auto &fn : all ) fn();
+                    std::string ss, exec = std::to_string( get<PASSED>() + get<FAILED>() );
+                    ss += "Breakpoints: " + std::to_string( get<BREAKPOINTS>() ) + " (*)\n";
+                    ss += "Total time: " + time(start) + " seconds.\n";
+                    if( !get<FAILED>() ) ss += "Success: " + exec + " tests passed :)\n";
+                    else                 ss += "Failure: " + std::to_string( get<FAILED>() ) + '/' + exec + " tests failed :(\n";
+                    std::fprintf( stderr, "\n%s", ss.c_str() );
+                }
+            } queue;
+            return std::string("after") == after ? ( queue.all.push_back( fn ), false ) : ( fn(), true );
+        }
+        suite( const char *const text, bool result, const char *const file, int line )
+        :   ok(result), expr( {std::string(file) + ':' + std::to_string(line), " - ", text, "" } ) {
 
-    // public API, runs a batch of all defined unittests (useful in continuous integration scenarios)
-    std::string units();
+            expr[0] = "Test " + std::to_string(++get<TESTNO>()) + " at " + expr[0];
+            queue( [&](){ if( result ) get<PASSED>()++; else get<FAILED>()++; }, "" );
 
-    // public API, optional read-only stats and runtime logs
-    extern size_t passed(), failed(), executed();
-    extern std::string right(), wrong(), footer();
+            has_bp = ( get<TESTNO>() == get<BREAKPOINT>() );
+            if( has_bp ) {
+                get<BREAKPOINTS>()++;
+                std::fprintf( stderr, "<petitsuite/petitsuite.hpp> says: breaking on test #%d\n\t", get<TESTNO>() );
+                    assert(! "<petitsuite/petitsuite.hpp> says: breakpoint requested" );
+                std::fprintf( stderr, "%s", "\n<petitsuite/petitsuite.hpp> says: breakpoint failed!\n" );
+            };
+        }
+        ~suite() {
+            std::string res[] = { "[FAIL]", "[ OK ]" }, bp[] = { "  ", " *" }, tab[] = { "        ", "" };
+            expr[0] = res[ok] + bp[has_bp] + expr[0] + " (" + time(start) + " s)";
+            if( expr[1].size() > 3 ) expr[0] += expr[1];
+            expr.erase( expr.begin() + 1 );
+            if( ok ) {
+                expr = { expr[0] };
+            } else {
+                expr[2] = expr[2].substr( expr[2][2] == ' ' ? 3 : 4 );
+                if( expr[1] == expr[2] ) {
+                    expr[1].clear();
+                }
+                expr.push_back( "(unexpected)" );
+            }
+            for( auto begin = expr.begin(), end = expr.end(), it = begin; it != end; ++it ) {
+                if( it->size() ) std::fprintf( stderr, "%s%s\n", tab[ it == begin ].c_str(), it->c_str() );
+            }
+        }
 
-    // public API, enable/disable/check breakpoints on tests
-    extern bool has_breakpoint( unsigned testno );
-    extern void set_breakpoint( unsigned testno, bool enabled = true );
-
-    // public API, optional overridable callbacks, ie: petitsuite::on_warning = my_callback_fn;
-    extern void (*on_report)( const std::string &right, const std::string &wrong, const std::string &footer );
-    extern void (*on_warning)( const std::string &message );
-    extern void (*on_breakpoint)( int testno );
-
-    /* private API */
-    namespace detail {
-    extern void try_breakpoint( unsigned testno );
-    extern void queue_test( const std::string &results, bool ok, double duration );
-    extern bool queue_auto( void (*fn)(void), bool exec_now );
-    extern bool queue_unit( void (*fn)(void) );
-#   define petit$impl(str, num) str##num
-#   define petit$join(str, num) petit$impl(str, num)
-#   define petit$line(str)      petit$join(str, __LINE__)
-    struct string : public std::string {
-        explicit string(const char *expr) : std::string(expr) {}
-        bool operator>>( const string &other ) { return false; }};
-#   define testX(SIGN,A,OP,B,...) [&]() -> bool { \
-        auto _TESTN_ = 1+petitsuite::executed(); \
-        auto _HASBP_ = petitsuite::has_breakpoint( _TESTN_ ); \
-        std::stringstream _SS_, _TT_; \
-        using timer = std::chrono::high_resolution_clock; auto _START_ = timer::now(); \
-        auto _A_ = (A); auto _B_ = decltype(_A_)(B); auto _OK_ = ( _A_ OP _B_ ); if( !SIGN ) _OK_ = !_OK_; \
-        auto _TIME_ = double((timer::now() - _START_).count()) * timer::period::num / timer::period::den; \
-        _SS_ << ( _OK_ ? "[ OK ]" : "[FAIL]" ) << ( _HASBP_ ? "* " : "  " ) << "Test " << _TESTN_; \
-        _SS_ << " at " __FILE__ ":" << __LINE__ << " (" << _TIME_ << "s)"; if( !_OK_ ) { std::string _EXPR_; \
-         if( std::string("0") != #__VA_ARGS__ ) _SS_ << " - ", _SS_ << __VA_ARGS__; \
-         _EXPR_  = "\n\t" #A;      _TT_ << "\n\t" << _A_; if( std::string("00") != #B ) {\
-         _EXPR_ += " " #OP " " #B; _TT_ << " " #OP " " << _B_; } \
-         _SS_ << ( _TT_.str() != _EXPR_ ? _EXPR_ : "" ) << _TT_.str(); \
-         _SS_ << "\n\t" << ( _OK_ ^ (!SIGN) ? "true (false expected)" : "false (true expected)" ); } \
-        petitsuite::detail::queue_test( _SS_.str(), _OK_, _TIME_ ); \
-        return _OK_ ? true : false; }()
-    }
+#       define petit$glue(str, num) str##num
+#       define petit$join(str, num) petit$glue(str, num)
+#       define petit$line(str)      petit$join(str, __LINE__)
+#       define petit$impl(OP) \
+        template<typename T> suite &operator OP( const T &rhs ) { return expr[3] += " "#OP" " + std::to_string(rhs), *this; }
+        template<typename T> suite &operator <<( const T &t                ) { return expr[1] += std::to_string(t),  *this; }
+        template< size_t N > suite &operator <<( const char (&string)[N]   ) { return expr[1] += string,             *this; }
+        template<          > suite &operator <<( const std::string &string ) { return expr[1] += string,             *this; }
+        operator bool() const { return ok; }
+        petit$impl( <); petit$impl(<=);
+        petit$impl( >); petit$impl(>=);
+        petit$impl(!=); petit$impl(==);
+        petit$impl(^=);
+        petit$impl(&=); petit$impl(&&);
+        petit$impl(|=); petit$impl(||);
+    };
 }
