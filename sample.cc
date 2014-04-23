@@ -1,12 +1,18 @@
 #include <string>
 #include "petitsuite.hpp"
 
-int main() {
-    int a = 1, b = 2;
+tests( that run before main() ) {
+    test( 1 < 2 ); // test shall pass
+}
 
-    test( a < b );
+tests( that run after main() ) {
+    int a = 1, b = 2;
     test( a < b ) << "this shall pass; comment built on " << __TIME__ << " " << __DATE__;
-    test( a > b ) << "please call Aristotle (phone no: +30 " << 23760 << ") if this test fails";
+    test( a > b ) << "this shall fail; phone Aristotle (+30 " << 23760 << ") if this test fails";
+}
+
+int main() {
+    test( 1 + 1 );
 
     test( throws(
         std::string hello = "world";
@@ -17,13 +23,4 @@ int main() {
         std::string hello = "world";
         hello += hello;
     ) ) << "test shall fail, no exception thrown";
-}
-
-autotest(before) {            // auto test that runs *before* main()
-    test( 1 > 2 ) << "this shall fail";
-    test( 1 + 1 ) << "this shall pass";
-}
-
-autotest(after) {             // auto test that runs *after* main()
-    test( 1 + 1 ) << "this shall pass";
 }

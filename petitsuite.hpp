@@ -31,30 +31,31 @@
 #include <functional>
 #include <string>
 
-/*  Public API */
+/* Public API */
+#define throws(...)  ( [&](){ try { __VA_ARGS__; } catch( ... ) { return true; } return false; } () )
 #define test(...)    ( petit::suite(#__VA_ARGS__,bool(__VA_ARGS__),__FILE__,__LINE__) < __VA_ARGS__ )
-#define throws(...)  ( [&](){ try { __VA_ARGS__; } catch( ... ) { return true; } return false; }()  )
-#define autotest(after) \
-        static void petit$line(petitsuite)(); \
-        static const bool petit$line(autotest_) = petit::suite::queue( petit$line(petitsuite), #after ); \
-        void petit$line(petitsuite)()
+#define tests(...) \
+        static void petit$line(ptSuite)(); \
+        static const bool petit$line(ptSuite_) = petit::suite::queue( [&](){ \
+            test(1) << "start of suite: " #__VA_ARGS__; petit$line(ptSuite)(); test(1) << "end of suite: " #__VA_ARGS__; \
+            }, #__VA_ARGS__ ); \
+        void petit$line(ptSuite)()
 
 /* API Details */
 namespace petit {
     class suite {
-        using timer = std::chrono::high_resolution_clock;
-        using now_t = std::chrono::high_resolution_clock::time_point;
         int ok = false;
         bool has_bp = false;
-        now_t start = timer::now();
         std::deque< std::string > expr;
+        using timer = std::chrono::high_resolution_clock;
+        std::chrono::high_resolution_clock::time_point start = timer::now();
         enum { BREAKPOINT, BREAKPOINTS, PASSED, FAILED, TESTNO };
         template<int VAR> static unsigned &get() { static unsigned var[16] = {0}; return var[VAR]; }
-        static std::string time( now_t start ) {
+        static std::string time( std::chrono::high_resolution_clock::time_point start ) {
             return std::to_string( double((timer::now() - start).count()) * timer::period::num / timer::period::den );
         }
     public:
-        static bool queue( std::function<void()> fn, const char *const after ) {
+        static bool queue( const std::function<void()> &fn, const std::string &text ) {
             static auto start = timer::now();
             static struct install {
                 std::deque< std::function<void()> > all;
@@ -71,13 +72,13 @@ namespace petit {
                     std::fprintf( stderr, "\n%s", ss.c_str() );
                 }
             } queue;
-            return std::string("after") == after ? ( queue.all.push_back( fn ), false ) : ( fn(), true );
+            return text.find("before main()") == std::string::npos ? ( queue.all.push_back( fn ), false ) : ( fn(), true );
         }
         suite( const char *const text, bool result, const char *const file, int line )
         :   ok(result), expr( {std::string(file) + ':' + std::to_string(line), " - ", text, "" } ) {
 
             expr[0] = "Test " + std::to_string(++get<TESTNO>()) + " at " + expr[0];
-            queue( [&](){ if( result ) get<PASSED>()++; else get<FAILED>()++; }, "" );
+            queue( [&](){ if( result ) get<PASSED>()++; else get<FAILED>()++; }, "before main()" );
 
             has_bp = ( get<TESTNO>() == get<BREAKPOINT>() );
             if( has_bp ) {
@@ -92,15 +93,13 @@ namespace petit {
             expr[0] = res[ok] + bp[has_bp] + expr[0] + " (" + time(start) + " s)";
             if( expr[1].size() > 3 ) expr[0] += expr[1];
             expr.erase( expr.begin() + 1 );
-            if( ok ) {
-                expr = { expr[0] };
-            } else {
+            if( !ok ) {
                 expr[2] = expr[2].substr( expr[2][2] == ' ' ? 3 : 4 );
                 if( expr[1] == expr[2] ) {
                     expr[1].clear();
                 }
                 expr.push_back( "(unexpected)" );
-            }
+            } else expr = { expr[0] };
             for( auto begin = expr.begin(), end = expr.end(), it = begin; it != end; ++it ) {
                 if( it->size() ) std::fprintf( stderr, "%s%s\n", tab[ it == begin ].c_str(), it->c_str() );
             }
