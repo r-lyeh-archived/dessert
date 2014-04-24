@@ -50,7 +50,7 @@ namespace petit {
         using timer = std::chrono::high_resolution_clock;
         std::chrono::high_resolution_clock::time_point start = timer::now();
         enum { BREAKPOINT, BREAKPOINTS, PASSED, FAILED, TESTNO };
-        template<int VAR> static unsigned &get() { static unsigned var[16] = {0}; return var[VAR]; }
+        template<int VAR> static unsigned &get() { static unsigned var = 0; return var; }
         static std::string time( std::chrono::high_resolution_clock::time_point start ) {
             return std::to_string( double((timer::now() - start).count()) * timer::period::num / timer::period::den );
         }
@@ -91,7 +91,7 @@ namespace petit {
         ~suite() {
             std::string res[] = { "[FAIL]", "[ OK ]" }, bp[] = { "  ", " *" }, tab[] = { "        ", "" };
             expr[0] = res[ok] + bp[has_bp] + expr[0] + " (" + time(start) + " s)";
-            if( expr[1].size() > 3 ) expr[0] += expr[1];
+            expr[0] += expr[1].size() > 3 ? expr[1] : tab[1];
             expr.erase( expr.begin() + 1 );
             if( !ok ) {
                 expr[2] = expr[2].substr( expr[2][2] == ' ' ? 3 : 4 );
