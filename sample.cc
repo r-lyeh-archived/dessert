@@ -1,19 +1,26 @@
 #include <string>
 #include "petitsuite.hpp"
 
-tests( that run before main() ) {
-    test( 1 < 2 ); // test shall pass
-}
-
-tests( that run after main() ) {
+tests() {
     int a = 1, b = 2;
-    test( a < b ) << "this shall pass; comment built on " << __TIME__ << " " << __DATE__;
-    test( a > b ) << "this shall fail; phone Aristotle (+30 " << 23760 << ") if this test fails";
+    test( a < b );
+    test( a > b );
 }
 
-int main() {
-    test( 1 + 1 );
+tests() {
+    test( 1 < 2 ) << "test shall pass; comment built on " << __TIME__ << " " << __DATE__;
+    test( 1 > 2 ) << "test shall fail; phone Aristotle (+30 " << 23760 << ") if this test fails";
+}
 
+tests( "that run before main() #" << 1 ) {
+    if( test( 1 < 2 ) ) {
+        // ok
+    } else {
+        // handle error here
+    }
+}
+
+tests( "that run after main() #" << 2 ) {
     test( throws(
         std::string hello = "world";
         hello.at(10) = 'c';
@@ -24,3 +31,6 @@ int main() {
         hello += hello;
     ) ) << "test shall fail, no exception thrown";
 }
+
+int main()
+{}

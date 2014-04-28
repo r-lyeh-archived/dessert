@@ -16,19 +16,26 @@ Sample
 #include <string>
 #include "petitsuite.hpp"
 
-tests( that run before main() ) {
-    test( 1 < 2 ); // test shall pass
-}
-
-tests( that run after main() ) {
+tests() {
     int a = 1, b = 2;
-    test( a < b ) << "this shall pass; comment built on " << __TIME__ << " " << __DATE__;
-    test( a > b ) << "this shall fail; phone Aristotle (+30 " << 23760 << ") if this test fails";
+    test( a < b );
+    test( a > b );
 }
 
-int main() {
-    test( 1 + 1 );
+tests() {
+    test( 1 < 2 ) << "test shall pass; comment built on " << __TIME__ << " " << __DATE__;
+    test( 1 > 2 ) << "test shall fail; phone Aristotle (+30 " << 23760 << ") if this test fails";
+}
 
+tests( "that run before main() #" << 1 ) {
+    if( test( 1 < 2 ) ) {
+        // ok
+    } else {
+        // handle error here
+    }
+}
+
+tests( "that run after main() #" << 2 ) {
     test( throws(
         std::string hello = "world";
         hello.at(10) = 'c';
@@ -39,16 +46,18 @@ int main() {
         hello += hello;
     ) ) << "test shall fail, no exception thrown";
 }
+
+int main()
+{}
 ```
 
 API
 ---
-- `test(...)` macro expects given expression to be `true`.
+- `test(expr) << optional << title` macro expects given expression to be `true`.
   - returns `true` if test passes, else returns `false`
-  - any `<< message` is appended to print output.
   - lhs, rhs values are shown and printed out.
-- `tests(description) { /*code...*/ }` suite of tests.
-  - if `before main()` is found on `description`, then suite is executed before program entrypoint.
+- `tests(optional << title) { /*code...*/ }` suite of tests.
+  - if `before main()` is found on `title`, then suite is executed before program entrypoint.
 - `throws( /*code...*/ )` macro expects `[code...]` to throw any exception.
   - returns `true` if code throws any exception, else returns `false`
 
@@ -61,26 +70,33 @@ Possible output
 
 ```
 ~/petitsuite> g++ sample.cc --std=c++11 && ./a.out
-[ OK ]  Test 1 at sample.cc:4 (0.000000 s) - start of suite: that run before main()
-[ OK ]  Test 2 at sample.cc:5 (0.000000 s)
-[ OK ]  Test 3 at sample.cc:4 (0.000000 s) - end of suite: that run before main()
-[ OK ]  Test 4 at sample.cc:15 (0.000000 s)
-[ OK ]  Test 5 at sample.cc:20 (0.000000 s) - test shall pass, exception thrown
-[FAIL]  Test 6 at sample.cc:25 (0.000000 s) - test shall fail, no exception thrown
-        throws( std::string hello = "world"; hello += hello; )
-        0
-        (unexpected)
-[ OK ]  Test 7 at sample.cc:8 (0.000000 s) - start of suite: that run after main()
-[ OK ]  Test 8 at sample.cc:10 (0.000000 s) - this shall pass; comment built on 21:01:40 Apr 23 2014
-[FAIL]  Test 9 at sample.cc:11 (0.000000 s) - this shall fail; phone Aristotle (+30 23760) if this test fails
+[ OK ]  Test 1 at sample.cc:15 (0.000000 s) - start of suite: that run before main() #1
+[ OK ]  Test 2 at sample.cc:16 (0.000000 s)
+[ OK ]  Test 3 at sample.cc:15 (0.000000 s) - end of suite: that run before main() #1
+[ OK ]  Test 4 at sample.cc:4 (0.000000 s) - start of suite:
+[ OK ]  Test 5 at sample.cc:6 (0.000000 s)
+[FAIL]  Test 6 at sample.cc:7 (0.000000 s)
         a > b
         1 > 2
         (unexpected)
-[ OK ]  Test 10 at sample.cc:8 (0.000000 s) - end of suite: that run after main()
+[ OK ]  Test 7 at sample.cc:4 (0.000000 s) - end of suite:
+[ OK ]  Test 8 at sample.cc:10 (0.000000 s) - start of suite:
+[ OK ]  Test 9 at sample.cc:11 (0.000000 s) - test shall pass; comment built on 12:56:49 Apr 28 2014
+[FAIL]  Test 10 at sample.cc:12 (0.000000 s) - test shall fail; phone Aristotle (+30 23760) if this test fails
+        1 > 2
+        (unexpected)
+[ OK ]  Test 11 at sample.cc:10 (0.000000 s) - end of suite:
+[ OK ]  Test 12 at sample.cc:23 (0.000000 s) - start of suite: that run after main() #2
+[ OK ]  Test 13 at sample.cc:27 (0.000000 s) - test shall pass, exception thrown
+[FAIL]  Test 14 at sample.cc:32 (0.000000 s) - test shall fail, no exception thrown
+        throws( std::string hello = "world"; hello += hello; )
+        0
+        (unexpected)
+[ OK ]  Test 15 at sample.cc:23 (0.000000 s) - end of suite: that run after main() #2
 
 Breakpoints: 0 (*)
-Total time: 0.001000 seconds.
-Failure: 2/10 tests failed :(
+Total time: 0.002000 seconds.
+Failure: 3/15 tests failed :(
 
 ~/petitsuite>
 ~/petitsuite> export BREAKON=5

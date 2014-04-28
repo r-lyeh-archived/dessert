@@ -37,8 +37,8 @@
 #define tests(...) \
         static void petit$line(ptSuite)(); \
         static const bool petit$line(ptSuite_) = petit::suite::queue( [&](){ \
-            test(1) << "start of suite: " #__VA_ARGS__; petit$line(ptSuite)(); test(1) << "end of suite: " #__VA_ARGS__; \
-            }, #__VA_ARGS__ ); \
+            test(1) << "start of suite: " __VA_ARGS__; petit$line(ptSuite)(); test(1) << "end of suite: " __VA_ARGS__; \
+            }, "" #__VA_ARGS__ ); \
         void petit$line(ptSuite)()
 
 /* API Details */
