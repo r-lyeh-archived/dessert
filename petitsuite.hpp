@@ -44,11 +44,10 @@
 /* API Details */
 namespace petit {
     class suite {
-        int ok = false;
-        bool has_bp = false;
-        std::deque< std::string > expr;
         using timer = std::chrono::high_resolution_clock;
         std::chrono::high_resolution_clock::time_point start = timer::now();
+        std::deque< std::string > expr;
+        int ok = false, has_bp = false;
         enum { BREAKPOINT, BREAKPOINTS, PASSED, FAILED, TESTNO };
         template<int VAR> static unsigned &get() { static unsigned var = 0; return var; }
         static std::string time( std::chrono::high_resolution_clock::time_point start ) {
@@ -105,9 +104,9 @@ namespace petit {
             }
         }
 
-#       define petit$glue(str, num) str##num
-#       define petit$join(str, num) petit$glue(str, num)
-#       define petit$line(str)      petit$join(str, __LINE__)
+#       define petit$join(str, num) str##num
+#       define petit$glue(str, num) petit$join(str, num)
+#       define petit$line(str)      petit$glue(str, __LINE__)
 #       define petit$impl(OP) \
         template<typename T> suite &operator OP( const T &rhs ) { return expr[3] += " "#OP" " + std::to_string(rhs), *this; }
         template<typename T> suite &operator <<( const T &t                ) { return expr[1] += std::to_string(t),  *this; }
@@ -117,8 +116,6 @@ namespace petit {
         petit$impl( <); petit$impl(<=);
         petit$impl( >); petit$impl(>=);
         petit$impl(!=); petit$impl(==);
-        petit$impl(^=);
-        petit$impl(&=); petit$impl(&&);
-        petit$impl(|=); petit$impl(||);
+        petit$impl(&&); petit$impl(||);
     };
 }
