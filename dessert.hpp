@@ -33,16 +33,18 @@
 
 /* Public API */
 #define throws(...)  ( [&](){ try { __VA_ARGS__; } catch( ... ) { return true; } return false; } () )
-#define test(...)    ( petit::suite(#__VA_ARGS__,bool(__VA_ARGS__),__FILE__,__LINE__) < __VA_ARGS__ )
-#define tests(...) \
-        static void petit$line(ptSuite)(); \
-        static const bool petit$line(ptSuite_) = petit::suite::queue( [&](){ \
-            test(1) << "start of suite: " __VA_ARGS__; petit$line(ptSuite)(); test(1) << "end of suite: " __VA_ARGS__; \
+#define dessert(...) ( dessert::suite(#__VA_ARGS__,bool(__VA_ARGS__),__FILE__,__LINE__) < __VA_ARGS__ )
+#define desserts(...) \
+        static void dessert$line(dessert)(); \
+        static const bool dessert$line(dsstSuite_) = dessert::suite::queue( [&](){ \
+            dessert(1)<< "start of suite: " __VA_ARGS__; \
+            dessert$line(dessert)(); \
+            dessert(1)<< "end of suite: " __VA_ARGS__; \
             }, "" #__VA_ARGS__ ); \
-        void petit$line(ptSuite)()
+        void dessert$line(dessert)()
 
 /* API Details */
-namespace petit {
+namespace dessert {
     using namespace std;
     class suite {
         using timer = chrono::high_resolution_clock;
@@ -82,9 +84,9 @@ namespace petit {
 
             if( 0 != ( has_bp = ( get<TESTNO>() == get<BREAKPOINT>() )) ) {
                 get<BREAKPOINTS>()++;
-                fprintf( stderr, "<petitsuite/petitsuite.hpp> says: breaking on test #%d\n\t", get<TESTNO>() );
-                    assert(! "<petitsuite/petitsuite.hpp> says: breakpoint requested" );
-                fprintf( stderr, "%s", "\n<petitsuite/petitsuite.hpp> says: breakpoint failed!\n" );
+                fprintf( stderr, "<dessert/dessert.hpp> says: breaking on test #%d\n\t", get<TESTNO>() );
+                    assert(! "<dessert/dessert.hpp> says: breakpoint requested" );
+                fprintf( stderr, "%s", "\n<dessert/dessert.hpp> says: breakpoint failed!\n" );
             };
         }
         ~suite() {
@@ -101,10 +103,10 @@ namespace petit {
             }
         }
 
-#       define petit$join(str, num) str##num
-#       define petit$glue(str, num) petit$join(str, num)
-#       define petit$line(str)      petit$glue(str, __LINE__)
-#       define petit$impl(OP) \
+#       define dessert$join(str, num) str##num
+#       define dessert$glue(str, num) dessert$join(str, num)
+#       define dessert$line(str)      dessert$glue(str, __LINE__)
+#       define dessert$impl(OP) \
         template<typename T> suite &operator OP( const T &rhs         ) { return xpr[3] += " "#OP" " + to_string(rhs), *this; } \
         template<          > suite &operator OP( const string &rhs    ) { return xpr[3] += " "#OP" " + rhs,            *this; } \
         template< size_t N > suite &operator OP( const char (&rhs)[N] ) { return xpr[3] += " "#OP" " + string(rhs),    *this; }
@@ -112,9 +114,9 @@ namespace petit {
         template<          > suite &operator <<( const string &str    ) { return xpr[1] += str,                        *this; }
         template< size_t N > suite &operator <<( const char (&str)[N] ) { return xpr[1] += str,                        *this; }
         operator bool() const { return ok; }
-        petit$impl( <); petit$impl(<=);
-        petit$impl( >); petit$impl(>=);
-        petit$impl(!=); petit$impl(==);
-        petit$impl(&&); petit$impl(||);
+        dessert$impl( <); dessert$impl(<=);
+        dessert$impl( >); dessert$impl(>=);
+        dessert$impl(!=); dessert$impl(==);
+        dessert$impl(&&); dessert$impl(||);
     };
 }
