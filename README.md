@@ -9,9 +9,32 @@ petitsuite
 - Optional breakpoints on tests.
 - MIT licensed.
 
-Sample
-------
+### Quick tutorial
+Replace any `assert()` with `test()`. That's it.
 
+```c++
+#include "petitsuite.hpp"
+
+int main() {
+    int a = 1, b = 2;
+    test( a < b );
+    test( a > b );
+}
+```
+
+### API
+- `test(expr) << an << optional << title` macro expects given expression to be `true`.
+  - returns `true` if test passes, else returns `false`
+  - lhs, rhs values are shown and printed out.
+- `tests(an << optional << title) { /*code...*/ }` suite of tests.
+  - if `before main()` is found on `title`, then suite is executed before main() is run.
+- `throws( /*code...*/ )` macro expects `[code...]` to throw any exception.
+  - returns `true` if code throws any exception, else returns `false`
+
+### Breakpoints
+- Invoke debugger at runtime by setting `BREAKON` environment variable to the specified test number.
+
+### Full sample
 ```c++
 #include <string>
 #include "petitsuite.hpp"
@@ -51,23 +74,7 @@ int main()
 {}
 ```
 
-API
----
-- `test(expr) << optional << title` macro expects given expression to be `true`.
-  - returns `true` if test passes, else returns `false`
-  - lhs, rhs values are shown and printed out.
-- `tests(optional << title) { /*code...*/ }` suite of tests.
-  - if `before main()` is found on `title`, then suite is executed before program entrypoint.
-- `throws( /*code...*/ )` macro expects `[code...]` to throw any exception.
-  - returns `true` if code throws any exception, else returns `false`
-
-Breakpoints
------------
-- Invoke debugger at runtime by setting `BREAKON` environment variable to the specified test number.
-
-Possible output
----------------
-
+### Possible output
 ```
 ~/petitsuite> g++ sample.cc --std=c++11 && ./a.out
 [ OK ]  Test 1 at sample.cc:15 (0.000000 s) - start of suite: that run before main() #1
@@ -81,7 +88,7 @@ Possible output
         (unexpected)
 [ OK ]  Test 7 at sample.cc:4 (0.000000 s) - end of suite:
 [ OK ]  Test 8 at sample.cc:10 (0.000000 s) - start of suite:
-[ OK ]  Test 9 at sample.cc:11 (0.000000 s) - test shall pass; comment built on 12:56:49 Apr 28 2014
+[ OK ]  Test 9 at sample.cc:11 (0.000000 s) - test shall pass; comment built on 14:57:40 May  1 2014
 [FAIL]  Test 10 at sample.cc:12 (0.000000 s) - test shall fail; phone Aristotle (+30 23760) if this test fails
         1 > 2
         (unexpected)
@@ -94,9 +101,9 @@ Possible output
         (unexpected)
 [ OK ]  Test 15 at sample.cc:23 (0.000000 s) - end of suite: that run after main() #2
 
-Breakpoints: 0 (*)
-Total time: 0.002000 seconds.
-Failure: 3/15 tests failed :(
+[FAIL]  Failure! 3/15 tests failed :(
+        Breakpoints: 0 (*)
+        Total time: 0.006000 seconds.
 
 ~/petitsuite>
 ~/petitsuite> export BREAKON=5

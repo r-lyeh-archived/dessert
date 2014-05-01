@@ -43,64 +43,61 @@
 
 /* API Details */
 namespace petit {
+    using namespace std;
     class suite {
-        using timer = std::chrono::high_resolution_clock;
-        std::chrono::high_resolution_clock::time_point start = timer::now();
-        std::deque< std::string > expr;
+        using timer = chrono::high_resolution_clock;
+        chrono::high_resolution_clock::time_point start = timer::now();
+        deque< string > xpr;
         int ok = false, has_bp = false;
         enum { BREAKPOINT, BREAKPOINTS, PASSED, FAILED, TESTNO };
         template<int VAR> static unsigned &get() { static unsigned var = 0; return var; }
-        static std::string time( std::chrono::high_resolution_clock::time_point start ) {
-            return std::to_string( double((timer::now() - start).count()) * timer::period::num / timer::period::den );
+        static string time( chrono::high_resolution_clock::time_point start ) {
+            return to_string( double((timer::now() - start).count()) * timer::period::num / timer::period::den );
         }
     public:
-        static bool queue( const std::function<void()> &fn, const std::string &text ) {
+        static bool queue( const function<void()> &fn, const string &text ) {
             static auto start = timer::now();
             static struct install {
-                std::deque< std::function<void()> > all;
+                deque< function<void()> > all;
                 install() {
-                    get<BREAKPOINT>() = std::stoul( std::getenv("BREAKON") ? std::getenv("BREAKON") : "0" );
+                    get<BREAKPOINT>() = stoul( getenv("BREAKON") ? getenv("BREAKON") : "0" );
                 }
                 ~install() {
                     for( auto &fn : all ) fn();
-                    std::string ss, exec = std::to_string( get<PASSED>() + get<FAILED>() );
-                    ss += "Breakpoints: " + std::to_string( get<BREAKPOINTS>() ) + " (*)\n";
-                    ss += "Total time: " + time(start) + " seconds.\n";
-                    if( !get<FAILED>() ) ss += "Success: " + exec + " tests passed :)\n";
-                    else                 ss += "Failure: " + std::to_string( get<FAILED>() ) + '/' + exec + " tests failed :(\n";
-                    std::fprintf( stderr, "\n%s", ss.c_str() );
+                    string ss, run = to_string( get<PASSED>()+get<FAILED>() ), res = get<FAILED>() ? "[FAIL]  " : "[ OK ]  ";
+                    if( get<FAILED>() ) ss += res + "Failure! " + to_string(get<FAILED>()) + '/'+ run + " tests failed :(\n";
+                    else                ss += res + "Success: " + run + " tests passed :)\n";
+                    ss += "        Breakpoints: " + to_string( get<BREAKPOINTS>() ) + " (*)\n";
+                    ss += "        Total time: " + time(start) + " seconds.\n";
+                    fprintf( stderr, "\n%s", ss.c_str() );
                 }
             } queue;
-            return text.find("before main()") == std::string::npos ? ( queue.all.push_back( fn ), false ) : ( fn(), true );
+            return text.find("before main()") == string::npos ? ( queue.all.push_back( fn ), false ) : ( fn(), true );
         }
         suite( const char *const text, bool result, const char *const file, int line )
-        :   ok(result), expr( {std::string(file) + ':' + std::to_string(line), " - ", text, "" } ) {
+        :   ok(result), xpr( {string(file) + ':' + to_string(line), " - ", text, "" } ) {
 
-            expr[0] = "Test " + std::to_string(++get<TESTNO>()) + " at " + expr[0];
+            xpr[0] = "Test " + to_string(++get<TESTNO>()) + " at " + xpr[0];
             queue( [&](){ if( result ) get<PASSED>()++; else get<FAILED>()++; }, "before main()" );
 
-            has_bp = ( get<TESTNO>() == get<BREAKPOINT>() );
-            if( has_bp ) {
+            if( 0 != ( has_bp = ( get<TESTNO>() == get<BREAKPOINT>() )) ) {
                 get<BREAKPOINTS>()++;
-                std::fprintf( stderr, "<petitsuite/petitsuite.hpp> says: breaking on test #%d\n\t", get<TESTNO>() );
+                fprintf( stderr, "<petitsuite/petitsuite.hpp> says: breaking on test #%d\n\t", get<TESTNO>() );
                     assert(! "<petitsuite/petitsuite.hpp> says: breakpoint requested" );
-                std::fprintf( stderr, "%s", "\n<petitsuite/petitsuite.hpp> says: breakpoint failed!\n" );
+                fprintf( stderr, "%s", "\n<petitsuite/petitsuite.hpp> says: breakpoint failed!\n" );
             };
         }
         ~suite() {
-            std::string res[] = { "[FAIL]", "[ OK ]" }, bp[] = { "  ", " *" }, tab[] = { "        ", "" };
-            expr[0] = res[ok] + bp[has_bp] + expr[0] + " (" + time(start) + " s)";
-            expr[0] += expr[1].size() > 3 ? expr[1] : tab[1];
-            expr.erase( expr.begin() + 1 );
+            string res[] = { "[FAIL]", "[ OK ]" }, bp[] = { "  ", " *" }, tab[] = { "        ", "" };
+            xpr[0] = res[ok] + bp[has_bp] + xpr[0] + " (" + time(start) + " s)" + (xpr[1].size() > 3 ? xpr[1] : tab[1]);
+            xpr.erase( xpr.begin() + 1 );
             if( !ok ) {
-                expr[2] = expr[2].substr( expr[2][2] == ' ' ? 3 : 4 );
-                if( expr[1] == expr[2] ) {
-                    expr[1].clear();
-                }
-                expr.push_back( "(unexpected)" );
-            } else expr = { expr[0] };
-            for( auto begin = expr.begin(), end = expr.end(), it = begin; it != end; ++it ) {
-                if( it->size() ) std::fprintf( stderr, "%s%s\n", tab[ it == begin ].c_str(), it->c_str() );
+                xpr[2] = xpr[2].substr( xpr[2][2] == ' ' ? 3 : 4 );
+                xpr[1].resize( (xpr[1] != xpr[2]) * xpr[1].size() );
+                xpr.push_back( "(unexpected)" );
+            } else xpr = { xpr[0] };
+            for( unsigned it = 0; it < xpr.size(); ++it ) {
+                fprintf( stderr, xpr[it].size() ? "%s%s\n" : "", tab[ !it ].c_str(), xpr[it].c_str() );
             }
         }
 
@@ -108,10 +105,12 @@ namespace petit {
 #       define petit$glue(str, num) petit$join(str, num)
 #       define petit$line(str)      petit$glue(str, __LINE__)
 #       define petit$impl(OP) \
-        template<typename T> suite &operator OP( const T &rhs ) { return expr[3] += " "#OP" " + std::to_string(rhs), *this; }
-        template<typename T> suite &operator <<( const T &t                ) { return expr[1] += std::to_string(t),  *this; }
-        template< size_t N > suite &operator <<( const char (&string)[N]   ) { return expr[1] += string,             *this; }
-        template<          > suite &operator <<( const std::string &string ) { return expr[1] += string,             *this; }
+        template<typename T> suite &operator OP( const T &rhs         ) { return xpr[3] += " "#OP" " + to_string(rhs), *this; } \
+        template<          > suite &operator OP( const string &rhs    ) { return xpr[3] += " "#OP" " + rhs,            *this; } \
+        template< size_t N > suite &operator OP( const char (&rhs)[N] ) { return xpr[3] += " "#OP" " + string(rhs),    *this; }
+        template<typename T> suite &operator <<( const T &t           ) { return xpr[1] += to_string(t),               *this; }
+        template<          > suite &operator <<( const string &str    ) { return xpr[1] += str,                        *this; }
+        template< size_t N > suite &operator <<( const char (&str)[N] ) { return xpr[1] += str,                        *this; }
         operator bool() const { return ok; }
         petit$impl( <); petit$impl(<=);
         petit$impl( >); petit$impl(>=);
