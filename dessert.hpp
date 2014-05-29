@@ -30,6 +30,7 @@
 #include <deque>
 #include <functional>
 #include <string>
+#include <sstream>
 
 /* Public API */
 #define throws(...)  ( [&](){ try { __VA_ARGS__; } catch( ... ) { return true; } return false; } () )
@@ -48,13 +49,14 @@ namespace dessert {
     using namespace std;
     class suite {
         using timer = chrono::high_resolution_clock;
-        chrono::high_resolution_clock::time_point start = timer::now();
+        timer::time_point start = timer::now();
         deque< string > xpr;
         int ok = false, has_bp = false;
         enum { BREAKPOINT, BREAKPOINTS, PASSED, FAILED, TESTNO };
-        template<int VAR> static unsigned &get() { static unsigned var = 0; return var; }
-        static string time( chrono::high_resolution_clock::time_point start ) {
-            return to_string( double((timer::now() - start).count()) * timer::period::num / timer::period::den );
+        template<int VARNUM> static unsigned &get() { static unsigned var = 0; return var; }
+        template<typename T> static string to_str( const T &t ) { std::stringstream ss; return ss << t ? ss.str() : string("??"); }
+        template<          > static string to_str( const timer::time_point &start ) {
+            return to_str( double((timer::now() - start).count()) * timer::period::num / timer::period::den );
         }
     public:
         static bool queue( const function<void()> &fn, const string &text ) {
@@ -66,20 +68,20 @@ namespace dessert {
                 }
                 ~install() {
                     for( auto &fn : all ) fn();
-                    string ss, run = to_string( get<PASSED>()+get<FAILED>() ), res = get<FAILED>() ? "[FAIL]  " : "[ OK ]  ";
-                    if( get<FAILED>() ) ss += res + "Failure! " + to_string(get<FAILED>()) + '/'+ run + " tests failed :(\n";
+                    string ss, run = to_str( get<PASSED>()+get<FAILED>() ), res = get<FAILED>() ? "[FAIL]  " : "[ OK ]  ";
+                    if( get<FAILED>() ) ss += res + "Failure! " + to_str(get<FAILED>()) + '/'+ run + " tests failed :(\n";
                     else                ss += res + "Success: " + run + " tests passed :)\n";
-                    ss += "        Breakpoints: " + to_string( get<BREAKPOINTS>() ) + " (*)\n";
-                    ss += "        Total time: " + time(start) + " seconds.\n";
+                    ss += "        Breakpoints: " + to_str( get<BREAKPOINTS>() ) + " (*)\n";
+                    ss += "        Total time: " + to_str(start) + " seconds.\n";
                     fprintf( stderr, "\n%s", ss.c_str() );
                 }
             } queue;
             return text.find("before main()") == string::npos ? ( queue.all.push_back( fn ), false ) : ( fn(), true );
         }
         suite( const char *const text, bool result, const char *const file, int line )
-        :   ok(result), xpr( {string(file) + ':' + to_string(line), " - ", text, "" } ) {
+        :   ok(result), xpr( {string(file) + ':' + to_str(line), " - ", text, "" } ) {
 
-            xpr[0] = "Test " + to_string(++get<TESTNO>()) + " at " + xpr[0];
+            xpr[0] = "Test " + to_str(++get<TESTNO>()) + " at " + xpr[0];
             queue( [&](){ if( result ) get<PASSED>()++; else get<FAILED>()++; }, "before main()" );
 
             if( 0 != ( has_bp = ( get<TESTNO>() == get<BREAKPOINT>() )) ) {
@@ -91,7 +93,7 @@ namespace dessert {
         }
         ~suite() {
             string res[] = { "[FAIL]", "[ OK ]" }, bp[] = { "  ", " *" }, tab[] = { "        ", "" };
-            xpr[0] = res[ok] + bp[has_bp] + xpr[0] + " (" + time(start) + " s)" + (xpr[1].size() > 3 ? xpr[1] : tab[1]);
+            xpr[0] = res[ok] + bp[has_bp] + xpr[0] + " (" + to_str(start) + " s)" + (xpr[1].size() > 3 ? xpr[1] : tab[1]);
             xpr.erase( xpr.begin() + 1 );
             if( !ok ) {
                 xpr[2] = xpr[2].substr( xpr[2][2] == ' ' ? 3 : 4 );
@@ -107,12 +109,12 @@ namespace dessert {
 #       define dessert$glue(str, num) dessert$join(str, num)
 #       define dessert$line(str)      dessert$glue(str, __LINE__)
 #       define dessert$impl(OP) \
-        template<typename T> suite &operator OP( const T &rhs         ) { return xpr[3] += " "#OP" " + to_string(rhs), *this; } \
-        template<          > suite &operator OP( const string &rhs    ) { return xpr[3] += " "#OP" " + rhs,            *this; } \
-        template< size_t N > suite &operator OP( const char (&rhs)[N] ) { return xpr[3] += " "#OP" " + string(rhs),    *this; }
-        template<typename T> suite &operator <<( const T &t           ) { return xpr[1] += to_string(t),               *this; }
-        template<          > suite &operator <<( const string &str    ) { return xpr[1] += str,                        *this; }
-        template< size_t N > suite &operator <<( const char (&str)[N] ) { return xpr[1] += str,                        *this; }
+        template<typename T> suite &operator OP( const T &rhs         ) { return xpr[3] += " "#OP" " + to_str(rhs), *this; } \
+        template<          > suite &operator OP( const string &rhs    ) { return xpr[3] += " "#OP" " + rhs,         *this; } \
+        template< size_t N > suite &operator OP( const char (&rhs)[N] ) { return xpr[3] += " "#OP" " + string(rhs), *this; }
+        template<typename T> suite &operator <<( const T &t           ) { return xpr[1] += to_str(t),               *this; }
+        template<          > suite &operator <<( const string &str    ) { return xpr[1] += str,                     *this; }
+        template< size_t N > suite &operator <<( const char (&str)[N] ) { return xpr[1] += str,                     *this; }
         operator bool() const { return ok; }
         dessert$impl( <); dessert$impl(<=);
         dessert$impl( >); dessert$impl(>=);
