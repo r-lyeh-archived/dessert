@@ -3,8 +3,24 @@
 
 desserts() {
     int a = 1, b = 2;
+
     dessert( a < b );
     dessert( a > b );
+
+    std::string hello = "hello";
+    std::string hell0 = "hell0";
+
+    dessert( "hello" ==  hello );
+    dessert(  hello  == "hello" );
+    dessert(  hello  ==  hello );
+    dessert( "hello" == "hello" );
+
+    dessert( "hello" !=  hell0 );
+    dessert(  hello  != "hell0" );
+    dessert(  hello  !=  hell0 );
+    dessert( "hello" != "hell0" );
+
+    dessert( "hell0" != "hell0" ) << "this shall fail";
 }
 
 desserts() {
