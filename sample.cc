@@ -28,6 +28,12 @@ desserts() {
     dessert( 1 > 2 ) << "test shall fail; phone Aristotle (+30 " << 23760 << ") if this test fails";
 }
 
+desserts() {
+    auto once = []{ static int num = 0; return 0 == num++; };
+    dessert( once() );
+    dessert( once() ) << "test shall fail";
+}
+
 desserts( "that run before main() #" << 1 ) {
     if( dessert( 1 < 2 ) ) {
         // ok
