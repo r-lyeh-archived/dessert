@@ -48,11 +48,11 @@
 #include <sstream>
 namespace dessert {
     using namespace std;
-	using timer = chrono::high_resolution_clock;
-	template<typename T> string to_str( const T &t ) { stringstream ss; return (ss << t) ? ss.str() : "??"; }
-	template<          > string to_str( const timer::time_point &start ) {
-	    return to_str( double((timer::now() - start).count()) * timer::period::num / timer::period::den );
-	}
+    using timer = chrono::high_resolution_clock;
+    template<typename T> inline string to_str( const T &t ) { stringstream ss; return (ss << t) ? ss.str() : "??"; }
+    template<          > inline string to_str( const timer::time_point &start ) {
+        return to_str( double((timer::now() - start).count()) * timer::period::num / timer::period::den );
+    }
     class suite {
         timer::time_point start = timer::now();
         deque< string > xpr;
@@ -99,10 +99,9 @@ namespace dessert {
                 xpr[1].resize( (xpr[1] != xpr[2]) * xpr[1].size() );
                 xpr.push_back( "(unexpected)" );
             }
-            for( unsigned it = 0; it < xpr.size(); ++it )
-				if(xpr[it].size())
-                	fprintf( stderr, "%s%s\n", tab[ !it ].c_str(), xpr[it].c_str() );
-        }
+            for( unsigned it = 0; it < xpr.size(); ++it ) {
+             if(xpr[it].size()) fprintf( stderr, "%s%s\n", tab[ !it ].c_str(), xpr[it].c_str() );
+        } }
 #       define dessert$join(str, num) str##num
 #       define dessert$glue(str, num) dessert$join(str, num)
 #       define dessert$line(str)      dessert$glue(str, __LINE__)
