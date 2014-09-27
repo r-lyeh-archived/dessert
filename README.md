@@ -7,7 +7,7 @@ dessert :cake:
 - Easy to integrate. Single file, header-only.
 - Cross-platform. No extra dependencies.
 - Optional breakpoints on tests.
-- MIT licensed.
+- BOOST licensed.
 
 ### Quick tutorial
 Replace any `assert()` with `dessert()`. That's it. Piece of cake :cake:
