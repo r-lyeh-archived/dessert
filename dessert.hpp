@@ -1,9 +1,4 @@
-/* Lightweight and simple C++11 test framework. No dependencies.
- * Copyright (c) 2012,2013,2014 Mario 'rlyeh' Rodriguez
- *
- * Distributed under the Boost Software License, Version 1.0.
- * (See license copy at http://www.boost.org/LICENSE_1_0.txt)
-
+/* Lightweight unit-testing C++11 framework. BOOST licensed.
  * - rlyeh ~~ listening to Led Zeppelin / No Quarter
  */
 
@@ -21,7 +16,7 @@
         void dessert$line(dessert)()
 #define throws(...) ( [&](){ try { __VA_ARGS__; } catch( ... ) { return true; } return false; }() )
 
-/* Private API */
+/* API details following */
 #pragma once
 #include <cassert>
 #include <cstdio>
@@ -77,7 +72,7 @@ namespace dessert {
             if( xpr.empty() ) return;
             operator bool(), queue( [&](){ get(ok ? PASSED : FAILED)++; }, "before main()" );
             string res[] = { "[FAIL]", "[ OK ]" }, bp[] = { "  ", " *" }, tab[] = { "        ", "" };
-            xpr[0] = res[ok] + bp[has_bp] + xpr[0] + " (" + to_str(start) + " s)" + (xpr[1].size() > 3 ? xpr[1] : tab[1]);
+            xpr[0] = res[ok] + bp[has_bp] + xpr[0] + " (" + to_str(start) + " s)" + (xpr[1].size() > 3 && !ok ? xpr[1] : tab[1]);
             xpr.erase( xpr.begin() + 1 );
             if( ok ) xpr = { xpr[0] }; else {
                 xpr[2] = xpr[2].substr( xpr[2][2] == ' ' ? 3 : 4 );
@@ -90,7 +85,7 @@ namespace dessert {
 #       define dessert$join(str, num) str##num
 #       define dessert$glue(str, num) dessert$join(str, num)
 #       define dessert$line(str)      dessert$glue(str, __LINE__)
-#       define dessert$impl(OP) \
+#       define dessert$(OP) \
         template<typename T> suite &operator OP( const T &rhs         ) { return xpr[3] += " "#OP" " + to_str(rhs), *this; } \
         template<unsigned N> suite &operator OP( const char (&rhs)[N] ) { return xpr[3] += " "#OP" " + to_str(rhs), *this; }
         template<typename T> suite &operator <<( const T &t           ) { return xpr[1] += to_str(t),               *this; }
@@ -102,7 +97,6 @@ namespace dessert {
                 return ok = ( sign == '=' ? equal : ( sign == '!' ? !equal : ok ) );
             }(), ok;
         }
-        dessert$impl( <); dessert$impl(<=); dessert$impl( >); dessert$impl(>=);
-        dessert$impl(!=); dessert$impl(==); dessert$impl(&&); dessert$impl(||);
+        dessert$(<); dessert$(<=); dessert$(>); dessert$(>=); dessert$(!=); dessert$(==); dessert$(&&); dessert$(||);
     };
 }

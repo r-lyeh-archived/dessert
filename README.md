@@ -1,13 +1,13 @@
 dessert :cake:
 =======
 
-- Dessert is a lightweight and simple test C++11 framework.
-- Tiny. Less than 100 LOC. Barebone suite is only a single `dessert()` macro.
-- Smart. LHS, RHS values are printed when tests fail.
-- Easy to integrate. Single file, header-only.
-- Cross-platform. No extra dependencies.
-- Optional breakpoints on tests.
-- BOOST licensed.
+- Dessert is a lightweight unit-testing framework (C++11).
+- Dessert is smart. LHS, RHS values are automatically outstreamed when tests fail.
+- Dessert is tiny. 100 LOC. Barebone suite is only a single `dessert()` macro.
+- Dessert is easy to integrate. Single file, header-only.
+- Dessert is cross-platform. No extra dependencies.
+- Dessert is handy. Optional breakpoints and interruption on selected tests.
+- Dessert is BOOST licensed.
 
 ### Quick tutorial
 Replace any `assert()` with `dessert()`. That's it. Piece of cake :cake:
@@ -36,11 +36,12 @@ int main() {
 ```
 
 ### API
-- `dessert(expr) << an << optional << title` macro expects given expression to be `true`.
-  - returns `true` if test passes, else returns `false`
-  - lhs, rhs values are shown and printed out.
-- `desserts(an << optional << title) { /*code...*/ }` suite of dessert tests.
-  - if `before main()` is found on `title`, then suite is executed before main() is run.
+- `dessert(expr) << optional << messages << here` macro expects given expression to be `true`.
+  - if test passes, some info is printed, then expression returns `true`
+  - if test fails, lhs, rhs (and optional messages) are printed, then expression returns `false`
+- `desserts(optional << description << here) { /*code...*/ }` suite of dessert tests.
+  - if `before main()` is found on `description`, then suite is executed before main() is run.
+  - else suite is executed after main() is run (default behaviour).
 - `throws( /*code...*/ )` macro expects `[code...]` to throw any exception.
   - returns `true` if code throws any exception, else returns `false`
 
@@ -92,33 +93,33 @@ int main()
 ~/dessert>
 ~/dessert> g++ sample.cc --std=c++11 && ./a.out
 
-[ OK ]  Test 1 at sample.cc:15 (0.000000 s) - start of suite: that run before main() #1
-[ OK ]  Test 2 at sample.cc:16 (0.000000 s)
-[ OK ]  Test 3 at sample.cc:15 (0.000000 s) - end of suite: that run before main() #1
-[ OK ]  Test 4 at sample.cc:4 (0.000000 s) - start of suite:
-[ OK ]  Test 5 at sample.cc:6 (0.000000 s)
-[FAIL]  Test 6 at sample.cc:7 (0.000000 s)
+[ OK ]  Test 1 at sample.cc:15 (0 s)
+[ OK ]  Test 2 at sample.cc:16 (0 s)
+[ OK ]  Test 3 at sample.cc:15 (0 s)
+[ OK ]  Test 4 at sample.cc:4 (0 s)
+[ OK ]  Test 5 at sample.cc:6 (0.0009996 s)
+[FAIL]  Test 6 at sample.cc:7 (0 s)
         a > b
         1 > 2
         (unexpected)
-[ OK ]  Test 7 at sample.cc:4 (0.000000 s) - end of suite:
-[ OK ]  Test 8 at sample.cc:10 (0.000000 s) - start of suite:
-[ OK ]  Test 9 at sample.cc:11 (0.000000 s) - test shall pass; comment built on 14:57:40 May  1 2014
-[FAIL]  Test 10 at sample.cc:12 (0.000000 s) - test shall fail; phone Aristotle (+30 23760) if this test fails
+[ OK ]  Test 7 at sample.cc:4 (0 s)
+[ OK ]  Test 8 at sample.cc:10 (0 s)
+[ OK ]  Test 9 at sample.cc:11 (0 s)
+[FAIL]  Test 10 at sample.cc:12 (0 s) - test shall fail; phone Aristotle (+30 23760) if this test fails
         1 > 2
         (unexpected)
-[ OK ]  Test 11 at sample.cc:10 (0.000000 s) - end of suite:
-[ OK ]  Test 12 at sample.cc:23 (0.000000 s) - start of suite: that run after main() #2
-[ OK ]  Test 13 at sample.cc:27 (0.000000 s) - test shall pass, exception thrown
-[FAIL]  Test 14 at sample.cc:32 (0.000000 s) - test shall fail, no exception thrown
+[ OK ]  Test 11 at sample.cc:10 (0 s)
+[ OK ]  Test 12 at sample.cc:23 (0 s)
+[ OK ]  Test 13 at sample.cc:27 (0 s)
+[FAIL]  Test 14 at sample.cc:32 (0 s) - test shall fail, no exception thrown
         throws( std::string hello = "world"; hello += hello; )
         0
         (unexpected)
-[ OK ]  Test 15 at sample.cc:23 (0.000000 s) - end of suite: that run after main() #2
+[ OK ]  Test 15 at sample.cc:23 (0 s)
 
-[FAIL]  Failure! 3/15 desserts failed :(
+[FAIL]  Failure! 3/15 tests failed :(
         Breakpoints: 0 (*)
-        Total time: 0.006000 seconds.
+        Total time: 0.142943 seconds.
 
 ~/dessert>
 ~/dessert> export BREAKON=5
