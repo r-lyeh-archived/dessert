@@ -34,7 +34,7 @@ desserts() {
     dessert( once() ) << "test shall fail";
 }
 
-desserts( "that run before main() #" << 1 ) {
+desserts( "Tests before main()" ) {
     if( dessert( 1 < 2 ) ) {
         // ok
     } else {
@@ -42,7 +42,7 @@ desserts( "that run before main() #" << 1 ) {
     }
 }
 
-desserts( "that run after main() #" << 2 ) {
+desserts( "Tests after main()" ) {
     dessert( throws(
             std::string hello = "world";
             hello.at(10) = 'c';

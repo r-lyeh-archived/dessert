@@ -39,9 +39,9 @@ int main() {
 - `dessert(expr) << optional << messages << here` macro expects given expression to be `true`.
   - if test passes, some info is printed, then expression returns `true`
   - if test fails, lhs, rhs (and optional messages) are printed, then expression returns `false`
-- `desserts(optional << description << here) { /*code...*/ }` suite of dessert tests.
-  - if `before main()` is found on `description`, then suite is executed before main() is run.
-  - else suite is executed after main() is run (default behaviour).
+- `desserts(title...) { /*code...*/ }` suite of dessert tests.
+  - if `before main()` is found on `title`, then suite is executed before `main()` is run.
+  - else suite is executed after `main()` is run (default behaviour).
 - `throws( /*code...*/ )` macro expects `[code...]` to throw any exception.
   - returns `true` if code throws any exception, else returns `false`
 
@@ -67,7 +67,7 @@ desserts() {
     dessert( 1 > 2 ) << "test shall fail; phone Aristotle (+30 " << 23760 << ") if this test fails";
 }
 
-desserts( "that run before main() #" << 1 ) {
+desserts( "Tests before main()" ) {
     if( dessert( 1 < 2 ) ) {
         // ok
     } else {
@@ -75,7 +75,7 @@ desserts( "that run before main() #" << 1 ) {
     }
 }
 
-desserts( "that run after main() #" << 2 ) {
+desserts( "Tests after main()" ) {
     dessert( throws(
             std::string hello = "world";
             hello.at(10) = 'c';
@@ -93,33 +93,47 @@ int main()
 ~/dessert>
 ~/dessert> g++ sample.cc --std=c++11 && ./a.out
 
-[ OK ]  Test 1 at sample.cc:15 (0 s)
-[ OK ]  Test 2 at sample.cc:16 (0 s)
-[ OK ]  Test 3 at sample.cc:15 (0 s)
-[ OK ]  Test 4 at sample.cc:4 (0 s)
-[ OK ]  Test 5 at sample.cc:6 (0.0009996 s)
-[FAIL]  Test 6 at sample.cc:7 (0 s)
+------  Tests before main()
+[ OK ]  Test 1 at sample.cc:38 (0 s)
+------  Suite
+[ OK ]  Test 2 at sample.cc:7 (0 s)
+[FAIL]  Test 3 at sample.cc:8 (0 s)
         a > b
         1 > 2
         (unexpected)
-[ OK ]  Test 7 at sample.cc:4 (0 s)
-[ OK ]  Test 8 at sample.cc:10 (0 s)
-[ OK ]  Test 9 at sample.cc:11 (0 s)
-[FAIL]  Test 10 at sample.cc:12 (0 s) - test shall fail; phone Aristotle (+30 23760) if this test fails
+[ OK ]  Test 4 at sample.cc:13 (0 s)
+[ OK ]  Test 5 at sample.cc:14 (0 s)
+[ OK ]  Test 6 at sample.cc:15 (0 s)
+[ OK ]  Test 7 at sample.cc:16 (0 s)
+[ OK ]  Test 8 at sample.cc:18 (0 s)
+[ OK ]  Test 9 at sample.cc:19 (0.001 s)
+[ OK ]  Test 10 at sample.cc:20 (0 s)
+[ OK ]  Test 11 at sample.cc:21 (0 s)
+[FAIL]  Test 12 at sample.cc:23 (0 s) - this shall fail
+        "hell0" != "hell0"
+        hell0 != hell0
+        (unexpected)
+------  Suite
+[ OK ]  Test 13 at sample.cc:27 (0 s)
+[FAIL]  Test 14 at sample.cc:28 (0 s) - test shall fail; phone Aristotle (+30 23760) if this test fails
         1 > 2
         (unexpected)
-[ OK ]  Test 11 at sample.cc:10 (0 s)
-[ OK ]  Test 12 at sample.cc:23 (0 s)
-[ OK ]  Test 13 at sample.cc:27 (0 s)
-[FAIL]  Test 14 at sample.cc:32 (0 s) - test shall fail, no exception thrown
+------  Suite
+[ OK ]  Test 15 at sample.cc:33 (0 s)
+[FAIL]  Test 16 at sample.cc:34 (0 s) - test shall fail
+        once()
+        0
+        (unexpected)
+------  Tests after main()
+[ OK ]  Test 17 at sample.cc:49 (0.001 s)
+[FAIL]  Test 18 at sample.cc:54 (0 s) - test shall fail, no exception thrown
         throws( std::string hello = "world"; hello += hello; )
         0
         (unexpected)
-[ OK ]  Test 15 at sample.cc:23 (0 s)
 
-[FAIL]  Failure! 3/15 tests failed :(
+[FAIL]  Failure! 5/18 tests failed :(
         Breakpoints: 0 (*)
-        Total time: 0.142943 seconds.
+        Total time: 0.237 seconds.
 
 ~/dessert>
 ~/dessert> export BREAKON=5

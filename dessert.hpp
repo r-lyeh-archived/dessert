@@ -9,9 +9,9 @@
 #define desserts(...) \
         static void dessert$line(dessert)(); \
         static const bool dessert$line(dsstSuite_) = dessert::suite::queue( [&](){ \
-            dessert(1)<< "start of suite: " __VA_ARGS__; \
+            std::string title = "" __VA_ARGS__; if( title.empty() ) title = "Suite"; \
+            fprintf( stderr, "------  %s\n", title.c_str() ); \
             dessert$line(dessert)(); \
-            dessert(1)<< "end of suite: " __VA_ARGS__; \
             }, "" #__VA_ARGS__ ); \
         void dessert$line(dessert)()
 #define throws(...) ( [&](){ try { __VA_ARGS__; } catch( ... ) { return true; } return false; }() )
