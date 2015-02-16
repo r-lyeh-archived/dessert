@@ -1,4 +1,4 @@
-dessert :cake:
+dessert :cake: <a href="https://travis-ci.org/r-lyeh/dessert"><img src="https://api.travis-ci.org/r-lyeh/dessert.svg?branch=master" align="right" /></a>
 =======
 
 - Dessert is a lightweight unit-testing framework (C++11).
