@@ -7,7 +7,7 @@ dessert :cake: <a href="https://travis-ci.org/r-lyeh/dessert"><img src="https://
 - Dessert is easy to integrate. Single file, header-only.
 - Dessert is cross-platform. No extra dependencies.
 - Dessert is handy. Optional breakpoints and interruption on selected tests.
-- Dessert is BOOST licensed.
+- Dessert is zlib/libpng licensed.
 
 ### Quick tutorial
 Replace any `assert()` with `dessert()`. That's it. Piece of cake :cake:

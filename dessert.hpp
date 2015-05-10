@@ -1,6 +1,5 @@
-/* Lightweight unit-testing C++11 framework. BOOST licensed.
- * - rlyeh ~~ listening to Led Zeppelin / No Quarter
- */
+// Lightweight unit-testing C++11 framework. zlib/libpng licensed.
+// - rlyeh ~~ listening to Led Zeppelin / No Quarter
 
 /* Public API */
 #define dessert(...) ( bool(__VA_ARGS__) ? \
