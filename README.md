@@ -149,3 +149,10 @@ Program received signal SIGABRT, Aborted.
 #0  0x00007fff9447d866 in dessert::suite::break (20)
 #1  0x00007fff9229835c in main (12)
 ```
+
+## changelog
+- v1.0.0 (2015/05/22)
+  - semantic versioning adherence
+  - cosmetic fixes
+- v0.0.0 (2013/xx/xx)
+  - initial commits

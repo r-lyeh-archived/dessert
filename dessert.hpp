@@ -1,8 +1,9 @@
 // Lightweight unit-testing C++11 framework. zlib/libpng licensed.
 // - rlyeh ~~ listening to Led Zeppelin / No Quarter
+#pragma once
 
-/* Public API */
-#define dessert(...) ( bool(__VA_ARGS__) ? \
+/* Public API - v1.0.0 */
+#define dessert(...) ( !!(__VA_ARGS__) ? \
         ( dessert::suite(#__VA_ARGS__,__FILE__,__LINE__,1) < __VA_ARGS__ ) : \
         ( dessert::suite(#__VA_ARGS__,__FILE__,__LINE__,0) < __VA_ARGS__ ) )
 #define desserts(...) \
@@ -16,7 +17,6 @@
 #define throws(...) ( [&](){ try { __VA_ARGS__; } catch( ... ) { return true; } return false; }() )
 
 /* API details following */
-#pragma once
 #include <cassert>
 #include <cstdio>
 #include <cstdlib>
@@ -28,7 +28,7 @@
 namespace dessert {
     using namespace std;
     using timer = chrono::high_resolution_clock;
-    template<typename T> inline string to_str( const T &t ) { stringstream ss; return (ss << t) ? ss.str() : "??"; }
+    template<typename T> inline string to_str( const T &t ) { stringstream ss; return (ss << t) ? ss.str() : string("??"); }
     template<          > inline string to_str( const timer::time_point &start ) {
         return to_str( double((timer::now() - start).count()) * timer::period::num / timer::period::den );
     }
@@ -65,22 +65,21 @@ namespace dessert {
                 fprintf( stderr, "<dessert/dessert.hpp> says: breaking on test #%d\n\t", get(TESTNO) );
                     assert(! "<dessert/dessert.hpp> says: breakpoint requested" );
                 fprintf( stderr, "%s", "\n<dessert/dessert.hpp> says: breakpoint failed!\n" );
-            };
+            }
         }
         ~suite() {
             if( xpr.empty() ) return;
             operator bool(), queue( [&](){ get(ok ? PASSED : FAILED)++; }, "before main()" );
-            string res[] = { "[FAIL]", "[ OK ]" }, bp[] = { "  ", " *" }, tab[] = { "        ", "" };
+            string res[] = { "[FAIL]", "[ OK ]", "  ", " *", "        ", "" }, *bp = &res[2], *tab = &res[4];
             xpr[0] = res[ok] + bp[has_bp] + xpr[0] + " (" + to_str(start) + " s)" + (xpr[1].size() > 3 && !ok ? xpr[1] : tab[1]);
             xpr.erase( xpr.begin() + 1 );
             if( ok ) xpr = { xpr[0] }; else {
-                xpr[2] = xpr[2].substr( xpr[2][2] == ' ' ? 3 : 4 );
-                xpr[1].resize( (xpr[1] != xpr[2]) * xpr[1].size() );
+                xpr[1].resize( (xpr[1] != (xpr[2] = xpr[2].substr( xpr[2][2] == ' ' ? 3 : 4 ))) * xpr[1].size() );
                 xpr.push_back( "(unexpected)" );
             }
-            for( unsigned it = 0; it < xpr.size(); ++it ) {
-             if(xpr[it].size()) fprintf( stderr, "%s%s\n", tab[ !it ].c_str(), xpr[it].c_str() );
-        } }
+            for( auto end = xpr.size(), it = end - end; it < end; ++it ) {
+                fprintf( stderr, &"\0%s%s\n"[ !xpr[it].empty() ], tab[ !it ].c_str(), xpr[ it ].c_str() );
+        }   }
 #       define dessert$join(str, num) str##num
 #       define dessert$glue(str, num) dessert$join(str, num)
 #       define dessert$line(str)      dessert$glue(str, __LINE__)
@@ -96,6 +95,6 @@ namespace dessert {
                 return ok = ( sign == '=' ? equal : ( sign == '!' ? !equal : ok ) );
             }(), ok;
         }
-        dessert$(<); dessert$(<=); dessert$(>); dessert$(>=); dessert$(!=); dessert$(==); dessert$(&&); dessert$(||);
+        dessert$(<) dessert$(<=) dessert$(>) dessert$(>=) dessert$(!=) dessert$(==) dessert$(&&) dessert$(||)
     };
 }
