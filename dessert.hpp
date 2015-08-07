@@ -2,7 +2,7 @@
 // - rlyeh ~~ listening to Led Zeppelin / No Quarter
 #pragma once
 
-/* Public API - v1.0.0 */
+#define DESSERT_VERSION "1.0.1" // Public API following
 #define dessert(...) ( !!(__VA_ARGS__) ? \
         ( dessert::suite(#__VA_ARGS__,__FILE__,__LINE__,1) < __VA_ARGS__ ) : \
         ( dessert::suite(#__VA_ARGS__,__FILE__,__LINE__,0) < __VA_ARGS__ ) )
@@ -90,9 +90,9 @@ namespace dessert {
         template<unsigned N> suite &operator <<( const char (&str)[N] ) { return xpr[1] += to_str(str),             *this; }
         operator bool() {
             return xpr.size() >= 3 && xpr[3].size() >= 6 && [&]() -> bool {
-                char sign = xpr[3].at(xpr[3].size()/2+1);
+                char signR = xpr[3].at(2);
                 bool equal = xpr[3].substr( 4 + xpr[3].size()/2 ) == xpr[3].substr( 3, xpr[3].size()/2 - 3 );
-                return ok = ( sign == '=' ? equal : ( sign == '!' ? !equal : ok ) );
+                return ok = ( signR == '=' ? equal : ( signR == '!' ? !equal : ok ) );
             }(), ok;
         }
         dessert$(<) dessert$(<=) dessert$(>) dessert$(>=) dessert$(!=) dessert$(==) dessert$(&&) dessert$(||)
