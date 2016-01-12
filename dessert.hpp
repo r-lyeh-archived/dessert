@@ -8,7 +8,7 @@
         ( dessert::suite(#__VA_ARGS__,__FILE__,__LINE__,0) < __VA_ARGS__ ) )
 #define desserts(...) \
         static void dessert$line(dessert)(); \
-        static const bool dessert$line(dsstSuite_) = dessert::suite::queue( [&](){ \
+        static const bool dessert$line(dsstSuite_) = dessert::suite::queue( [](){ \
             std::string title = "" __VA_ARGS__; if( title.empty() ) title = "Suite"; \
             fprintf( stderr, "------  %s\n", title.c_str() ); \
             dessert$line(dessert)(); \
