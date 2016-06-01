@@ -4,7 +4,7 @@
 void cmp( int x ) {
     dessert( x );
     dessert( 0 == !x );
-    dessert( !x == 0 );
+    dessert( (!x) == 0 );
     dessert( !!x );
     dessert( !!x );
 }

@@ -150,11 +150,8 @@ Program received signal SIGABRT, Aborted.
 #1  0x00007fff9229835c in main (12)
 ```
 
-## changelog
-- v1.0.1 (2015/08/07)
-  - fixed `<=` expression
-- v1.0.0 (2015/05/22)
-  - semantic versioning adherence
-  - cosmetic fixes
-- v0.0.0 (2013/xx/xx)
-  - initial commits
+## Changelog
+- v1.0.2 (2016/06/01): invoke `exit(num_tests_failed)` after report
+- v1.0.1 (2015/08/07): fixed `<=` expression
+- v1.0.0 (2015/05/22): semantic versioning adherence: cosmetic fixes
+- v0.0.0 (2013/xx/xx): initial commits

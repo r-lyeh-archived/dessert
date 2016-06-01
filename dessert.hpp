@@ -1,8 +1,8 @@
 // Lightweight unit-testing C++11 framework. zlib/libpng licensed.
 // - rlyeh ~~ listening to Led Zeppelin / No Quarter
-#pragma once
+#ifndef DESSERT_VERSION
+#define DESSERT_VERSION "1.0.2" // Public API following
 
-#define DESSERT_VERSION "1.0.1" // Public API following
 #define dessert(...) ( !!(__VA_ARGS__) ? \
         ( dessert::suite(#__VA_ARGS__,__FILE__,__LINE__,1) < __VA_ARGS__ ) : \
         ( dessert::suite(#__VA_ARGS__,__FILE__,__LINE__,0) < __VA_ARGS__ ) )
@@ -53,6 +53,7 @@ namespace dessert {
                     ss += "        Breakpoints: " + to_str( get(BREAKPOINTS) ) + " (*)\n";
                     ss += "        Total time: " + to_str(start) + " seconds.\n";
                     fprintf( stderr, "\n%s", ss.c_str() );
+                    if( get(FAILED) ) std::exit( get(FAILED) );
                 }
             } queue;
             return text.find("before main()") == string::npos ? ( queue.push_back( fn ), 0 ) : ( fn(), 1 );
@@ -98,3 +99,4 @@ namespace dessert {
         dessert$(<) dessert$(<=) dessert$(>) dessert$(>=) dessert$(!=) dessert$(==) dessert$(&&) dessert$(||)
     };
 }
+#endif
